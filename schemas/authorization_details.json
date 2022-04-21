@@ -1,0 +1,203 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "array",
+    "items": [{
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "pattern": "^sign$"
+                },
+                "locations": {
+                    "type": "array",
+                    "items": [{
+                        "type": "string"
+                    }],
+                    "minItems": 1,
+                    "maxItems": 1
+                },
+                "credentialID": {
+                    "type": "string",
+                    "pattern": "^qes_eidas$"
+                },
+                "hashAlgorithmOID": {
+                    "type": "string",
+                    "pattern": "^2\\.16\\.840\\.1\\.101\\.3\\.4\\.2\\.(1|2|3|8|9|10)$"
+                },
+                "documentDigests": {
+                    "type": "array",
+                    "items": [{
+                        "type": "object",
+                        "properties": {
+                            "hash": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "hash",
+                            "label"
+                        ]
+                    }],
+                    "minItems": 1
+                },
+                "identity_assurance_claims": {
+                    "type": "object",
+                    "properties": {
+                        "given_name": {
+                            "anyOf": [{
+                                "type": "null"
+                            }, {
+                                "type": "object",
+                                "properties": {
+                                    "essential": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }]
+                        },
+                        "family_name": {
+                            "anyOf": [{
+                                "type": "null"
+                            }, {
+                                "type": "object",
+                                "properties": {
+                                    "essential": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }]
+                        },
+                        "birthdate": {
+                            "anyOf": [{
+                                "type": "null"
+                            }, {
+                                "type": "object",
+                                "properties": {
+                                    "essential": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }]
+                        },
+                        "place_of_birth": {
+                            "anyOf": [{
+                                "type": "null"
+                            }, {
+                                "type": "object",
+                                "properties": {
+                                    "essential": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }]
+                        },
+                        "nationalities": {
+                            "anyOf": [{
+                                "type": "null"
+                            }, {
+                                "type": "object",
+                                "properties": {
+                                    "essential": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }]
+                        },
+                        "address": {
+                            "anyOf": [{
+                                "type": "null"
+                            }, {
+                                "type": "object",
+                                "properties": {
+                                    "essential": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }]
+                        }
+                    }
+                }
+            },
+            "required": [
+                "type",
+                "locations",
+                "credentialID",
+                "hashAlgorithmOID",
+                "documentDigests"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "pattern": "^payment_initiation$"
+                },
+                "paymentProduct": {
+                    "type": "string"
+                },
+                "instructedAmount": {
+                    "type": "object",
+                    "properties": {
+                        "currency": {
+                            "type": "string",
+                            "pattern": "^EUR$"
+                        },
+                        "amount": {
+                            "type": "string",
+                            "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+                        }
+                    },
+                    "required": [
+                        "currency",
+                        "amount"
+                    ]
+                },
+                "creditorName": {
+                    "type": "string"
+                },
+                "creditorAccount": {
+                    "type": "object",
+                    "properties": {
+                        "iban": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "iban"
+                    ]
+                },
+                "remittanceInformationUnstructured": {
+                    "type": "string"
+                },
+                "debtorAccount": {
+                    "type": "object",
+                    "properties": {
+                        "holderFamilyName": {
+                            "type": "string"
+                        },
+                        "holderGivenName": {
+                            "type": "string"
+                        },
+                        "holderSameName": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "type",
+                "paymentProduct",
+                "instructedAmount",
+                "creditorName",
+                "creditorAccount",
+                "remittanceInformationUnstructured"
+            ]
+        }
+    ],
+    "minItems": 1,
+    "maxItems": 2
+}

@@ -1,0 +1,129 @@
+{% extends "_base.html" %} {% block header %}
+<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-white">
+    <a href="/" class="ms-3 mb-md-0 text-dark text-decoration-none fs-5">yes® CADI</a>
+    <div>
+        <h1 class="fs-4 mb-0 text-center">
+            {{ client_config['client_name'] }} <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#clientDetails"><i class="bi bi-info-circle"></i></button>
+        </h1>
+        <code>{{ client_id }}</code>
+    </div>
+    <ul class="nav nav-pills ma-3">
+        <li class="nav-item">
+            <a href="https://yes.com/docs/rp-devguide/latest/index.html" class="nav-link">Developer Guide</a>
+        </li>
+    </ul>
+</header>
+{% endblock %} {% block body %}
+
+<body>
+    <div class="modal fade" id="clientDetails" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Client ID</th>
+                            <td><pre>{{ client_id }}</pre></td>
+                        </tr>
+                        <tr>
+                            <th>Client Name</th>
+                            <td><pre>{{ client_config['client_name'] }}</pre></td>
+                        </tr>
+                        <tr>
+                            <th>Default consent purpose</th>
+                            <td>{{ client_config['default_consent_purpose'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>{{ client_config['status'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Account Chooser Redirect URI</th>
+                            <td><pre>{{ client_config['ac_redirect_uri'] }}</pre></td>
+                        </tr>
+                        <tr>
+                            <th>OIDC Redirect URI(s)</th>
+                            <td>{% for uri in client_config['redirect_uris'] %}<pre>{{ uri }}</pre> {% endfor %}</td>
+                        </tr>
+                        <tr>
+                            <th>Application Type</th>
+                            <td>{{ client_config['application_type'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Allowed Claim(s)</th>
+                            <td>{% for c in client_config['allowed_claims'] %}<pre>{{ c }}</pre> {% endfor %}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% for tr in test_results %}
+    <div class="container-md mb-4">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between">
+                <div>{{ tr.request_name }}</div> <div class="text-muted">{{ tr.timestamp.strftime('%Y-%m-%d %H:%I:%S') }} UTC</div>
+            </div>
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="req-{{ id(tr) }}" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a data-toggle="tab" data-target="#req-{{ id(tr) }}-analysis" class="nav-link active" aria-current="true" href="#">Analysis</a>
+                    </li>
+                    {% for name, content in tr.extra_info.items() %}
+                    <li class="nav-item" role="presentation">
+                        <a data-toggle="tab" data-target="#req-{{ id(tr) }}-extra-{{ id(name) }}" class="nav-link" href="#">{{ name }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="tab-content">
+                <div class="tab-pane fade show active card-body" id="req-{{ id(tr) }}-analysis">
+                    <!-- <h5 class="card-title">Special title treatment</h5> -->
+                    <p class="card-text">
+                        {{ tr.description }}
+                    </p>
+                    <div class="accordion accordion-flush">
+                        {% for result in tr.test_results %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-toggle="collapse" data-target="#result-details-{{ id(result) }}" aria-expanded="false" aria-controls="result-details-{{ id(result) }}">
+                                    <i class="bi bi-{{ SM[result.result].icon }} fs-3 text-{{ SM[result.result].color }} me-3" title="{{ SM[result.result].text }}"></i>
+                                    {{ result.title}}
+                                </button>
+                            </h2>
+                            <div id="result-details-{{ id(result) }}" class="accordion-collapse collapse {% if result.result in [Status.WARNING, Status.FAILURE] %}show{% endif %}">
+                                <div class="accordion-body">
+                                    {{ result.text }}
+                                    {% if result.extra_info %}
+                                    <hr>
+                                    <pre>{{ result.extra_info }}</pre>
+                                    {% endif %}
+                                    {% if result.references %}
+                                    <hr>
+                                    More information:
+                                    <ul>
+                                        {% for title, url in result.references %}
+                                        <li>
+                                            <a href="{{ url }}" target="_blank">{{ title }}</a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    <div class="text-muted small pt-3">{{ result.test_id }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% for name, content in tr.extra_info.items() %}
+                <div class="tab-pane fade card-body" id="req-{{ id(tr) }}-extra-{{ id(name) }}">
+                    <pre>{{ content }}</pre>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</body>
+{% endblock %}
