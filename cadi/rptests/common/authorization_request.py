@@ -1,380 +1,9 @@
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
 import json
-import os
 import re
-from typing import Dict, List, Optional
-from urllib.parse import parse_qs
+from ...rptestmechanics import RPTestSet, RPTestResult, RPTestResultStatus
+from . import validate_with_json_schema
 
-import cryptography
-import jsonschema
-
-from .tools import CLIENT_ID_PATTERN
-
-
-class References:
-    RFC6749 = "https://tools.ietf.org/html/rfc6749"
-
-
-class RPTestResultStatus(Enum):
-    SUCCESS = "success"
-    WARNING = "warning"
-    FAILURE = "failure"
-    SKIPPED = "skipped"
-    INFO = "info"
-    WAITING = "waiting"
-
-
-@dataclass
-class RPTestResult:
-    result: str
-    text: str
-    skip_all_further_tests: bool = False
-    test_id: Optional[str] = None
-    title: Optional[str] = None
-    extra_info: Dict[str, str] = field(default_factory=dict)
-    output_data: Optional[Dict] = field(default_factory=dict)
-    references: List[str] = field(default_factory=list)
-    service_information: Optional[Dict] = field(default_factory=dict)
-
-
-@dataclass
-class RPTestResultSet:
-    request_name: str
-    description: str
-    test_results: List[RPTestResult]
-    extra_info: Dict[str, str] = field(default_factory=dict)
-    service_information: Optional[Dict] = field(default_factory=dict)
-
-    # Timestamp is set when creating the object
-    timestamp: datetime = field(default_factory=datetime.utcnow)
-
-
-SCHEMAS_PATH = os.path.abspath(os.path.dirname(__file__)) + "/../schemas"
-
-
-def validate_with_json_schema(json_input, schema_filename):
-    schema_path = os.path.join(SCHEMAS_PATH, schema_filename)
-    with open(schema_path) as f:
-        schema = json.load(f)
-    try:
-        jsonschema.validate(json_input, schema)
-    except jsonschema.ValidationError as e:
-        return False, str(e)
-    return True, None
-
-
-"""
-An RP Test Set contains functions of the form t1234_ that are called by the
-run() method in the lexical order of the function names. The number therefore
-defines the order of the tests.
-
-The convention for the number is as follows:
- * the first digit is the class of the test (0=basic request, 1=identifying the
-   calling client, 2=client authentication, 3..=content checks)
- * the second and third digits can be used to group the tests (e.g., all tests
-   around the claims parameter)
- * the fourth digit is the test number within the group
-"""
-
-
-class RPTestSet:
-    TEST_NAME_PATTERN = re.compile("^t[0-9]{4}_")
-
-    NAME: str
-    DESCRIPTION: str
-
-    # data is a dict holding data to be persisted between tests
-    data: Dict
-    extra_info: Dict[str, str] = {}
-    service_information: Optional[Dict] = {}
-
-    def __init__(self, platform_api, cache, **data):
-        self.platform_api = platform_api
-        self.cache = cache
-        self.data = data
-
-    def run(self):
-        # Sort tXXX_* functions
-        test_function_names = sorted(
-            [
-                function_name
-                for function_name in dir(self)
-                if self.TEST_NAME_PATTERN.match(function_name)
-            ]
-        )
-
-        # We collect test results in an array to later produce an RPTestResultSet
-        test_results = []
-
-        # Run all functions
-        skip_all_further_tests = False
-        for function_name in test_function_names:
-            # fn is the actual function object
-            fn = getattr(self, function_name)
-
-            # If skip_all_further_tests is set, the test is not run, but an empty test result is created.
-            # If not all required data values are available, the test is skipped as well.
-            if skip_all_further_tests or not self._all_data_available(fn):
-                # Create empty test result
-                result = RPTestResult(
-                    result=RPTestResultStatus.SKIPPED,
-                    text="Test skipped: An earlier test failed or this test is not relevants.",
-                )
-            else:
-                # Actually run test
-                result = fn(**self.data)
-                if result is None:
-                    result = RPTestResult(
-                        result=RPTestResultStatus.SKIPPED,
-                        text="Test returned no result.",
-                    )
-
-            # Augment result data with information from the test function
-            result.test_id = function_name
-            result.title = getattr(fn, "title", function_name)
-            result.references = getattr(fn, "references", [])
-
-            # Update the data with the result
-            self.data.update(result.output_data)
-            self.extra_info.update(result.extra_info)
-            self.service_information.update(result.service_information)
-            if result.skip_all_further_tests:
-                skip_all_further_tests = True
-
-            # Add result to the list of test results
-            test_results.append(result)
-
-        # Create RPTestResultSet
-        return RPTestResultSet(
-            request_name=self.NAME,
-            description=self.DESCRIPTION,
-            test_results=test_results,
-            extra_info=self.extra_info,
-            service_information=self.service_information,
-        )
-
-    def _all_data_available(self, fn):
-        required_data = fn.__code__.co_varnames[
-            1 : fn.__code__.co_argcount
-        ]  # skip self
-        for varname in required_data:
-            if varname == "_":
-                continue
-            if varname not in self.data:
-                print(f"{fn}: Missing required data value {varname}")
-                return False
-        return True
-
-    def prepare(self, **kwargs):
-        pass
-
-
-class ClientIDTestSet(RPTestSet):
-    def t1000_has_client_id(self, payload, **_):
-        if not "client_id" in payload:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "Client ID not found in payload. The parameter 'client_id' was expected.",
-                skip_all_further_tests=True,
-            )
-        else:
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The 'client_id' parameter was found in the payload.",
-                output_data={"client_id": payload["client_id"]},
-            )
-
-    t1000_has_client_id.title = "Client ID presence in payload"
-
-    def t1001_client_id_is_valid(self, client_id, **_):
-        if not re.match(CLIENT_ID_PATTERN, client_id):
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"Client ID '{client_id}' does not have the right format: sandbox.yes.com:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.",
-                skip_all_further_tests=True,
-            )
-
-        client_config = self.platform_api.get_client_config_with_cache(client_id)
-        if client_config is None:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"Client ID '{client_id}' does not exist in the yes directory.",
-                skip_all_further_tests=True,
-            )
-
-        return RPTestResult(
-            RPTestResultStatus.SUCCESS,
-            f"Client ID '{client_id}' is of the correct format and was found in the yes® directory.",
-            output_data={"client_config": client_config},
-        )
-
-    t1001_client_id_is_valid.title = "Client ID validity"
-
-    def t1002_client_id_is_not_deactivated(self, client_config, **_):
-        if client_config["status"] == "active":
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS, "Client ID status is 'active'."
-            )
-        elif client_config["status"] == "inactive":
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "Client ID is in status 'inactive'. The client ID needs to be in status 'active' to be used. Contact yes® to fix the problem.",
-                skip_all_further_tests=True,
-            )
-        elif client_config["status"] == "demo":
-            return RPTestResult(
-                RPTestResultStatus.WARNING,
-                "Client ID is in status 'demo'. The client ID should be in status 'active' to be used. Contact yes® to fix the problem.",
-            )
-        else:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"Client ID status is '{client_config['status']}'. The client ID needs to be in status 'active' to be used. Contact yes® to fix the problem.",
-                skip_all_further_tests=True,
-            )
-
-    t1002_client_id_is_not_deactivated.title = "Client ID status"
-
-
-class ClientAuthenticationTestSet(RPTestSet):
-    MTLS_HEADER = "x-yes-client-tls-certificate"
-
-    client_certificate = None
-    client_certificate_parsed = None
-
-    def t2000_client_certificate_present(self, request, **kwargs):
-        if (
-            not self.MTLS_HEADER in request.headers
-            or request.headers[self.MTLS_HEADER] == ""
-        ):
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "Client certificate was not presented in the TLS connection. "
-                "You must ensure that your HTTP library uses your client certificate with your private key during the connection establishment to this endpoint. "
-                "Note: Some libraries silently skip the use of the client certificate when the certificate or private key file cannot be found. ",
-            )
-        else:
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "Some client certificate was presented in the TLS connection.",
-                output_data={"client_certificate": request.headers[self.MTLS_HEADER]},
-                extra_info=f"Presented client certificate:\n{request.headers[self.MTLS_HEADER]}",
-            )
-
-    t2000_client_certificate_present.title = "Client certificate presence"
-
-    def t2001_client_certificate_format(self, client_certificate, **_):
-        # Check if the client certificate is a valid x509 self-signed certificate
-        try:
-            cert = cryptography.x509.load_pem_x509_certificate(
-                client_certificate.encode(), cryptography.default_backend()
-            )
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "Client certificate is a valid x509 certificate.",
-                output_data={"client_certificate_parsed": cert},
-            )
-        except Exception as e:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "Client certificate is not a valid x509 certificate. "
-                "Please see the yes® Developer Guide on how to create a certificate suitable for the ues with yes®.",
-                extra_info=str(e),
-            )
-
-    t2001_client_certificate_format.title = "Client certificate format"
-    t2001_client_certificate_format.references = [
-        (
-            "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
-        ),
-    ]
-
-    def t2002_client_certificate_valid(self, client_certificate_parsed, **_):
-        # Check if the client certificate is a valid x509 self-signed certificate
-        try:
-            issuer = dict(client_certificate_parsed.get_issuer().get_components())
-            subject = dict(client_certificate_parsed.get_subject().get_components())
-            if (
-                issuer["CN"] == subject["CN"]
-                and issuer["O"] == subject["O"]
-                and issuer["OU"] == subject["OU"]
-                and issuer["C"] == subject["C"]
-            ):
-                return RPTestResult(
-                    RPTestResultStatus.SUCCESS,
-                    "Client certificate is a valid self-signed x509 certificate.",
-                )
-        except Exception as e:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "Client certificate is not a valid x509 self-signed certificate. "
-                "Please see the yes® Developer Guide on how to create a self-signed certificate.",
-                extra_info=str(e),
-            )
-
-        return RPTestResult(
-            RPTestResultStatus.FAILURE,
-            "Client certificate is not a valid x509 self-signed certificate. "
-            "Please see the yes® Developer Guide on how to create a self-signed certificate.",
-        )
-
-    t2002_client_certificate_valid.title = "Client certificate validity"
-    t2002_client_certificate_valid.references = [
-        (
-            "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
-        ),
-    ]
-
-    def t2003_client_certificate_matching(self, client_config, client_certificate, **_):
-        # Compare the client certificate presented to the client certificates in the 'jwks' set of the client configuration. At least one must match.
-        # The client configuration jwks contains the client certificate in PEM format in the x5c member of the JWKS.
-
-        valid_client_certificates = client_config["jwks"]
-        for valid_client_certificate in valid_client_certificates:
-            if valid_client_certificate["x5c"][0] == client_certificate:
-                return RPTestResult(
-                    RPTestResultStatus.SUCCESS,
-                    "Client certificate matches one of the registered client certificates.",
-                )
-
-        return RPTestResult(
-            RPTestResultStatus.FAILURE,
-            "Client certificate does not match any of the registered client certificates. "
-            "Please ensure that you are using the correct client certificate that has been registered with yes®.",
-            extra_info=f"Valid client certificates:\n{valid_client_certificates}",
-        )
-
-    t2003_client_certificate_matching.title = "Client certificate registered"
-    t2003_client_certificate_matching.references = [
-        (
-            "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
-        ),
-    ]
-
-    def t2004_client_certificate_is_not_expired(self, client_certificate_parsed, **_):
-        # Check if the client certificate is not expired
-        if client_certificate_parsed.not_valid_after < datetime.datetime.utcnow():
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"Client certificate is expired (not valid after = {client_certificate_parsed.not_valid_after}). Please contact yes® with a new client certificate (see references).",
-            )
-        else:
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS, "Client certificate is not expired."
-            )
-
-    t2004_client_certificate_is_not_expired.title = "Client certificate expiration"
-    t2004_client_certificate_is_not_expired.references = [
-        (
-            "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
-        ),
-    ]
+from ...idp.session import IDPSession
 
 
 class AuthorizationRequestTestSet(RPTestSet):
@@ -384,6 +13,19 @@ class AuthorizationRequestTestSet(RPTestSet):
 
     PKCE_CODE_CHALLENGE_REGEX = re.compile(r"^[a-zA-Z0-9\-._~]{43,128}$")
     PKCE_CODE_CHALLENGE_MIN_LENGTH = 43
+
+    PERMITTED_PARAMETERS = {
+        "client_id",
+        "redirect_uri",
+        "response_type",
+        "scope",
+        "claims",
+        "state",
+        "nonce",
+        "code_challenge",
+        "code_challenge_method",
+        "authorization_details",
+    }
 
     def t3010_redirect_uri_valid(self, payload, client_config, **_):
         if not "redirect_uri" in payload:
@@ -399,13 +41,14 @@ class AuthorizationRequestTestSet(RPTestSet):
                 f"Redirect URI (redirect_uri) in the authorization request does not match the one in the client configuration. "
                 "If you need a different redirect URI registered, please contact yes®. "
                 "Note that for security reasons, all redirect URIs must match exactly a registered redirect URI.",
-                extra_info=f"Redirect URI (redirect_uri) in the authorization request: {payload['redirect_uri']}\n"
+                extra_details=f"Redirect URI (redirect_uri) in the authorization request: {payload['redirect_uri']}\n"
                 f"Redirect URIs in the client configuration: {', '.join(client_config['redirect_uris'])}",
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "Redirect URI (redirect_uri) parameter is present in the authorization request and the provided redirect URI matches one of the registered redirect URIs in the client configuration.",
+            output_data={"redirect_uri": payload["redirect_uri"]},
         )
 
     t3010_redirect_uri_valid.title = "Redirect URI (redirect_uri)"
@@ -440,15 +83,15 @@ class AuthorizationRequestTestSet(RPTestSet):
                         "claims_parameter_provided": True,
                         "claims_parsed": claims,
                     },
-                    service_information={
-                        "Identity claims requested": str(claims),
+                    request_info={
+                        "Claims Parameter": json.dumps(claims, indent=4),
                     },
                 )
         except Exception as e:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 "Claims (claims) in the authorization request is not a valid JSON object.",
-                extra_info=str(e),
+                extra_details=str(e),
             )
 
     t3020_claims_valid.title = "Usage of claims parameter"
@@ -487,7 +130,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 "The claims parameter is not valid (see below for details).",
-                extra_info=error,
+                extra_details=error,
             )
 
         # Assemble information on the claims used
@@ -516,6 +159,9 @@ class AuthorizationRequestTestSet(RPTestSet):
             for claim in verified_claims["claims"].keys():
                 verified_claims_requested.append(claim)
 
+        unverified_claims_requested = set(unverified_claims_requested)
+        verified_claims_requested = set(verified_claims_requested)
+
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "The claims parameter is valid according to the specification.",
@@ -524,8 +170,8 @@ class AuthorizationRequestTestSet(RPTestSet):
                 "verified_claims_requested": verified_claims_requested,
             },
             service_information={
-                "Verified claims requested": str(verified_claims_requested),
-                "Unverified claims requested": str(unverified_claims_requested),
+                "Claims (verified) requested": ", ".join(verified_claims_requested),
+                "Claims (unverified) requested": ", ".join(unverified_claims_requested),
             },
         )
 
@@ -535,10 +181,10 @@ class AuthorizationRequestTestSet(RPTestSet):
         self, client_config, unverified_claims_requested, verified_claims_requested, **_
     ):
         # All unverified claims must be listed in the allowed_claims
-        not_allowed_unverified_claims = set(unverified_claims_requested) - set(
+        not_allowed_unverified_claims = unverified_claims_requested - set(
             client_config["allowed_claims"]
         )
-        not_allowed_verified_claims = set(verified_claims_requested) - set(
+        not_allowed_verified_claims = verified_claims_requested - set(
             client_config["allowed_claims"]
         )
 
@@ -594,7 +240,10 @@ class AuthorizationRequestTestSet(RPTestSet):
 
     t3030_scope_format.title = "scope parameter format"
     t3030_scope_format.references = [
-        ("RFC6749, Appendix A.4", "https://tools.ietf.org/html/rfc6749#appendix-A.4"),
+        (
+            "RFC6749 - OAuth 2.0, Appendix A.4",
+            "https://tools.ietf.org/html/rfc6749#appendix-A.4",
+        ),
     ]
 
     def t3031_scope_matches_service_usage(
@@ -622,7 +271,9 @@ class AuthorizationRequestTestSet(RPTestSet):
             RPTestResultStatus.SUCCESS,
             "Scope parameter (scope) use matches the use case.",
             service_information={
-                "Identity Service used": "yes" if ("openid" in scopes_list) else "no",
+                "Service Identity requested": "yes"
+                if ("openid" in scopes_list)
+                else "no",
             },
         )
 
@@ -678,6 +329,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "Response type parameter (response_type) is set to 'code'.",
+            output_data={"response_type": payload["response_type"]},
         )
 
     t3040_response_type_valid.title = "response_type parameter"
@@ -749,23 +401,24 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.INFO,
                 "State parameter is not used in the authorization request.",
-                service_information={"State parameter": "Not used"},
+                service_information={"Security: State parameter": "Not used"},
             )
         else:
             return RPTestResult(
                 RPTestResultStatus.INFO,
                 "State parameter is used in the authorization request.",
-                service_information={"State parameter": "In use"},
+                service_information={"Security: State parameter": "In use"},
+                output_data={"state": payload["state"]},
             )
 
     t3060_state_value_used.title = "State parameter use"
 
-    def t3070_nonce_value_valid(self, payload, scopes_list, **_):
+    def t3070_nonce_value_valid(self, payload, **_):
         if not "nonce" in payload:
             return RPTestResult(
                 RPTestResultStatus.INFO,
                 "Nonce parameter is not used in the authorization request.",
-                service_information={"Nonce parameter": "Not used"},
+                service_information={"Security: Nonce parameter": "Not used"},
                 output_data={"sec_nonce_is_used": False},
             )
 
@@ -774,7 +427,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 f"Nonce parameter (nonce) is too short. It must be at least {self.NONCE_MIN_LENGTH} characters long.",
-                service_information={"Nonce parameter": "In use"},
+                service_information={"Security: Nonce parameter": "In use"},
                 output_data={"nonce": nonce, "sec_nonce_is_used": True},
             )
 
@@ -782,14 +435,14 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.WARNING,
                 f"Nonce parameter (nonce) is only {len(nonce)} characters long. It is recommended to use at least {self.NONCE_RECOMMENDED_MIN_LENGTH} characters long.",
-                service_information={"Nonce parameter": "In use"},
+                service_information={"Security: Nonce parameter": "In use"},
                 output_data={"nonce": nonce, "sec_nonce_is_used": True},
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "Nonce parameter is present in the authorization request, and is long enough.",
-            service_information={"Nonce parameter": "In use"},
+            service_information={"Security: Nonce parameter": "In use"},
             output_data={"nonce": nonce, "sec_nonce_is_used": True},
         )
 
@@ -811,6 +464,7 @@ class AuthorizationRequestTestSet(RPTestSet):
                 RPTestResultStatus.FAILURE,
                 f"Repeated use of the same nonce parameter value: '{nonce}'. "
                 "This is a security risk! The nonce value must be chosen randomly for each request. ",
+                extra_details="Previously used nonces:\n" + "\n".join(previous_nonces),
             )
 
         previous_nonces.append(nonce)
@@ -818,7 +472,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             f"Nonce parameter value is unique within the last {len(previous_nonces)} requests. ",
-            extra_info="Previously used nonces:\n" + "\n".join(previous_nonces),
+            extra_details="Previously used nonces:\n" + "\n".join(previous_nonces),
         )
 
     t3071_nonce_not_reused.title = "Nonce parameter uniqueness"
@@ -828,7 +482,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.INFO,
                 "PKCE (code_challenge and code_challenge_method) is not used in the authorization request.",
-                service_information={"PKCE": "Not used"},
+                service_information={"Security: PKCE": "Not used"},
                 output_data={"sec_pkce_is_used": False},
             )
 
@@ -836,7 +490,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.INFO,
                 "PKCE (code_challenge and code_challenge_method) is used in the authorization request.",
-                service_information={"PKCE": "In use"},
+                service_information={"Security: PKCE": "In use"},
                 output_data={
                     "sec_pkce_is_used": True,
                     "code_challenge": payload["code_challenge"],
@@ -847,11 +501,17 @@ class AuthorizationRequestTestSet(RPTestSet):
         return RPTestResult(
             RPTestResultStatus.FAILURE,
             "The PKCE parameters code_challenge and code_challenge_method must either both be used, or both be omitted.",
-            service_information={"PKCE": "In use"},
-            output_data={"sec_pkce_is_used": True},
+            service_information={"Security: PKCE": "Unclear"},
+            output_data={"sec_pkce_is_used": False},
         )
 
     t3080_pkce_use.title = "PKCE use"
+    t3080_pkce_use.references = [
+        (
+            "RFC7636 - Proof Key for Code Exchange, Section 4",
+            "https://datatracker.ietf.org/doc/html/rfc7636#section-4",
+        ),
+    ]
 
     def t3081_pkce_method_valid(self, code_challenge_method, **_):
         # MUST be plain or S256, but S256 should be used
@@ -868,6 +528,12 @@ class AuthorizationRequestTestSet(RPTestSet):
         )
 
     t3081_pkce_method_valid.title = "PKCE method"
+    t3081_pkce_method_valid.references = [
+        (
+            "RFC7636 - Proof Key for Code Exchange, Section 4",
+            "https://datatracker.ietf.org/doc/html/rfc7636#section-4",
+        ),
+    ]
 
     def t3082_pkce_parameters_valid(self, code_challenge, **_):
         # Check that code_challenge is long enough
@@ -890,6 +556,12 @@ class AuthorizationRequestTestSet(RPTestSet):
         )
 
     t3082_pkce_parameters_valid.title = "PKCE parameter format"
+    t3082_pkce_parameters_valid.references = [
+        (
+            "RFC7636 - Proof Key for Code Exchange, Section 4",
+            "https://datatracker.ietf.org/doc/html/rfc7636#section-4",
+        ),
+    ]
 
     def t3083_pkce_parameter_reuse(self, client_id, code_challenge, **_):
         key = f"pkce-list-{client_id}"
@@ -909,6 +581,8 @@ class AuthorizationRequestTestSet(RPTestSet):
                 RPTestResultStatus.FAILURE,
                 f"Repeated use of the same code_challenge parameter value: '{code_challenge}'. "
                 "This is a security risk! The code_challenge value must be chosen randomly for each request. ",
+                extra_details="Previously used code_challenges:\n"
+                + "\n".join(previous_code_challenges),
             )
 
         previous_code_challenges.append(code_challenge)
@@ -918,7 +592,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             f"The code_challenge parameter value is unique within the last {len(previous_code_challenges)} requests. ",
-            extra_info="Previously used code_challenges:\n"
+            extra_details="Previously used code_challenges:\n"
             + "\n".join(previous_code_challenges),
         )
 
@@ -945,8 +619,8 @@ class AuthorizationRequestTestSet(RPTestSet):
                 RPTestResultStatus.INFO,
                 "The authorization_details parameter is not used in the authorization request.",
                 service_information={
-                    "Payment service requested": "no",
-                    "Signing service requested": "no",
+                    "Service Payment Initiation requested": "no",
+                    "Service Signing requested": "no",
                 },
             )
 
@@ -968,7 +642,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 "The authorization_details parameter is not valid (see below for details).",
-                extra_info=error,
+                extra_details=error,
             )
 
         signing_service_used = False
@@ -983,29 +657,36 @@ class AuthorizationRequestTestSet(RPTestSet):
             RPTestResultStatus.SUCCESS,
             "The authorization_details parameter is valid.",
             service_information={
-                "Payment service requested": "yes" if payment_service_used else "no",
-                "Signing service requested": "yes" if signing_service_used else "no",
+                "Service Payment Initiation requested": "yes"
+                if payment_service_used
+                else "no",
+                "Service Signing requested": "yes" if signing_service_used else "no",
+            },
+            output_data={
+                "authorization_details_parsed": authorization_details_parsed,
             },
         )
 
     t3100_authorization_details_valid.title = "Authorization details"
+    t3100_authorization_details_valid.references = [
+        (
+            "yes® Relying Party Developer Guide, Signing Service, Section 3.2.1",
+            "https://yes.com/docs/rp-devguide/latest/QES/index.html#_authorization_details",
+        ),
+        (
+            "yes® Relying Party Developer Guide, Payment Initiation Service, Section 2.2.1",
+            "https://yes.com/docs/rp-devguide/latest/PIS/index.html#_authorization_details",
+        ),
+        (
+            "draft-ietf-oauth-rar - OAuth 2.0 Rich Authorization Requests",
+            "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-rar",
+        ),
+    ]
 
     def t3110_no_extra_parameters(self, payload, **_):
-        PERMITTED_PARAMETERS = [
-            "client_id",
-            "redirect_uri",
-            "response_type",
-            "scope",
-            "claims",
-            "state",
-            "nonce",
-            "code_challenge",
-            "code_challenge_method",
-            "authorization_details",
-        ]
 
         # Check that no extra parameters are present
-        extra_parameters = set(payload.keys()) - set(PERMITTED_PARAMETERS)
+        extra_parameters = set(payload.keys()) - self.PERMITTED_PARAMETERS
         if len(extra_parameters) > 0:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
@@ -1019,174 +700,38 @@ class AuthorizationRequestTestSet(RPTestSet):
 
     t3110_no_extra_parameters.title = "No extra parameters"
 
+    def t3120_create_session(
+        self,
+        client_id,
+        redirect_uri,
+        response_type,
+        scopes_list=None,
+        claims_parsed=None,
+        state=None,
+        nonce=None,
+        code_challenge=None,
+        code_challenge_method=None,
+        authorization_details_parsed=None,
+        **_
+    ):
+        # Create IDPSession
+        session = IDPSession(
+            client_id=client_id,
+            redirect_uri=redirect_uri,
+            response_type=response_type,
+            scopes_list=scopes_list,
+            claims=claims_parsed,
+            state=state,
+            nonce=nonce,
+            code_challenge=code_challenge,
+            code_challenge_method=code_challenge_method,
+            authorization_details=authorization_details_parsed,
+        )
 
-def dump_cherrypy_request_headers(request):
-    return (
-        f"{request.method} {request.path_info}{'?' if request.query_string != '' else ''}{request.query_string}\n"
-        + "\n".join(c + ": " + v for c, v in request.headers.items())
-    )
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            "Authorization Endpoint was called successfully.",
+            output_data={"session": session},
+        )
 
-
-class POSTRequestTestSet(RPTestSet):
-    def t0000_is_post_request(self, request, **_):
-
-        extra_info = {"Request Headers": dump_cherrypy_request_headers(request)}
-        # request is a cherrypy.request object
-        if request.method != "POST":
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "The request method is not POST. This endpoint only accepts POST requests.",
-                skip_all_further_tests=True,
-                extra_info=extra_info,
-            )
-        else:
-            extra_info["Request Body"] = request.body.read()
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The request method is POST.",
-                extra_info=extra_info,
-            )
-
-    t0000_is_post_request.title = "Request method"
-
-
-class PushedAuthorizationRequestTestSet(
-    POSTRequestTestSet,
-    AuthorizationRequestTestSet,
-    ClientIDTestSet,
-    ClientAuthenticationTestSet,
-):
-    def t0001_mime_type_is_json(self, request, **_):
-        # request is a cherrypy.request object
-        if "Content-Type" not in request.headers:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "The request does not contain a Content-Type header.",
-            )
-
-        if request.headers["Content-Type"] != "application/json":
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The Content-Type header is not application/json, but '{request.headers['Content-Type']}'. This endpoint only accepts JSON requests. "
-                "If you're sending JSON, you might need to set the 'Content-Type' header to the correct value.",
-            )
-        else:
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The Content-Type header is application/json.",
-            )
-
-    t0001_mime_type_is_json.title = "Content-Type header"
-
-    def t0002_has_valid_json_body(self, request, **_):
-        # check that the body of the request is valid JSON
-        try:
-            payload = json.loads(request.body.decode("utf-8"))
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The request body is valid JSON.",
-                output_data={"payload": payload},
-            )
-        except Exception as e:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "The request body is not valid JSON.",
-                extra_info=str(e),
-            )
-
-    t0002_has_valid_json_body.title = "JSON Request body"
-
-
-class GETRequestTestSet(RPTestSet):
-    def t0000_is_get_request(self, request, **_):
-        extra_info = {"Request Headers": dump_cherrypy_request_headers(request)}
-        # request is a cherrypy.request object
-        if request.method != "GET":
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The request method is not GET, but '{request.method}'. This endpoint only accepts GET requests.",
-                skip_all_further_tests=True,
-                extra_info=extra_info,
-            )
-        else:
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The request method is GET.",
-                extra_info=extra_info,
-            )
-
-    t0000_is_get_request.title = "Request Method"
-
-    def t0001_request_url_assembled_correctly(self, request, **_):
-        # request is a cherrypy.request object
-        # check that the URL (cherrypy.request.query_string) is a valid form-encoded URL and does not contain parameters of the form '?n=true?foo=bar'
-
-        if "?" in request.query_string:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part '{request.query_string}' must not contain a question mark.",
-            )
-
-        try:
-            parsed = parse_qs(
-                request.query_string, strict_parsing=True, errors="strict"
-            )
-        except Exception as e:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part '{request.query_string}' must be a valid form-encoded URL.",
-                extra_info=str(e),
-            )
-
-        # ensure that in the parsed dict, each field only contains one value
-        for key, value in parsed.items():
-            if len(value) != 1:
-                return RPTestResult(
-                    RPTestResultStatus.FAILURE,
-                    f"Each parameter must only be sent once. The parameter '{key}' is sent {len(value)} times.",
-                )
-
-        # use the first instance of each parameter in the output payload dict
-        payload = {
-            key: value[0]
-            for key, value in parsed.items()
-            if key != "predefined_parameter"
-        }
-
-        if not "predefined_parameter" in parsed:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The parameter 'predefined_parameter' is missing. Please take care to pass on all parameters from the authorization_endpoint configuration.",
-                output_data={"payload": payload},
-            )
-        else:
-
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The request URL is properly formatted.",
-                output_data={"payload": payload},
-            )
-
-    t0001_request_url_assembled_correctly.title = "Request URL"
-
-
-class TraditionalAuthorizationRequestTestSet(
-    GETRequestTestSet, ClientIDTestSet, AuthorizationRequestTestSet
-):
-    NAME = "RFC6749 Authorization Request"
-    DESCRIPTION = "Traditional Authorization Request as defined in RFC6749."
-
-
-class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSet):
-    NAME = "Authorization Request following Pushed Authorization Request"
-    DESCRIPTION = "Authorization Request after PAR."
-
-    def t0002_has_request_uri_parameter(self, payload, **_):
-        if not "request_uri" in payload:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                "The request does not contain a 'request_uri' parameter.",
-            )
-
-    def t0003_request_uri_parameter_is_valid(self, **_):
-        pass
+    t3120_create_session.title = "Create session"

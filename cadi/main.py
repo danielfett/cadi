@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+from typing import Dict, List
 
 import cherrypy
 import jinja2
@@ -9,18 +10,61 @@ from prometheus_client import Enum
 from pymemcache.client.base import Client as MemcacheClient
 from pymemcache.serde import PickleSerde
 from yaml import SafeLoader, load
+from furl import furl
+
+from cadi.rptests.token import TokenRequestTestSet
 
 from .platform_api import PlatformAPI
-from .rp_tests import (
-    RPTestResultStatus,
-    TraditionalAuthorizationRequestTestSet,
-    PARRequestURIAuthorizationRequestTestSet,
-)
+from .rptestmechanics import RPTestResultStatus
+from .rptests.par import PARRequestURIAuthorizationRequestTestSet
+from .rptests.traditional import TraditionalAuthorizationRequestTestSet
 from .tools import CLIENT_ID_PATTERN
+
+
+TEST_RESULT_STATUS_MAPPING = {
+    RPTestResultStatus.SUCCESS: {
+        "text": "Success",
+        "color": "success",
+        "description": "The feature is used correctly",
+        "icon": "check-circle",
+    },
+    RPTestResultStatus.WARNING: {
+        "text": "Warning",
+        "color": "warning",
+        "description": "The current usage of the feature may lead to problems in practice",
+        "icon": "exclamation-circle",
+    },
+    RPTestResultStatus.FAILURE: {
+        "text": "Failure",
+        "color": "danger",
+        "description": "This will lead to an error in practice",
+        "icon": "exclamation-circle",
+    },
+    RPTestResultStatus.SKIPPED: {
+        "text": "Test was skipped",
+        "color": "muted",
+        "description": "There was no need to run this test or the prerequisites are not met",
+        "icon": "slash-circle",
+    },
+    RPTestResultStatus.INFO: {
+        "text": "Info",
+        "color": "info",
+        "description": "Informative - not indicating a problem",
+        "icon": "info-circle",
+    },
+    RPTestResultStatus.WAITING: {
+        "text": "Waiting",
+        "color": "primary",
+        "description": "The test is waiting for a prerequisite to be met",
+        "icon": "question-circle",
+    },
+}
 
 
 class CADIDP:
     MAX_TEST_RESULTS = 10
+    MAX_OPEN_SESSIONS_PER_CLIENT = 10
+    SESSION_EXPIRATION = 60 * 60 * 3  # 3 hours
     TEST_RESULT_EXPIRATION = 60 * 60 * 12  # 12 hours
     MAX_RETRIES_CHECK_AND_SET = 12
 
@@ -47,36 +91,117 @@ class CADIDP:
             self.platform_api,
             cache=self.cache,
             request=cherrypy.request,
+            expected_client_id=client_id,
         )
 
-        self._attach_test_results(client_id, test.run())
+        test_results = test.run()
+        self._attach_test_results(client_id, test_results)
 
-        return f"OK, client_id: {client_id}"
+        if "session" in test.data:
+            # Store the session in the list of sessions for the client_id in the cache
+            key = "sessions_" + client_id
+            self._insert_into_cache_list(
+                key,
+                test.data["session"],
+                self.MAX_OPEN_SESSIONS_PER_CLIENT,
+                self.SESSION_EXPIRATION,
+            )
+            session_id = test.data["session"].sid
+        else:
+            session_id = None
+
+        # Render the auth_ep.html template
+        template = self.j2env.get_template("auth_ep.html")
+        return template.render(
+            client_id=client_id,
+            test_results=test_results,
+            stats=test_results.get_stats(),
+            session_id=session_id,
+            Status=RPTestResultStatus,
+            SM=TEST_RESULT_STATUS_MAPPING,
+        )
+
+    @cherrypy.expose
+    def auth_continue(self, client_id, sid):
+        # Check if a session with this sid exists for the given client_id
+        key = "sessions_" + client_id
+        the_list = self.cache.get(key)
+        if the_list is None:
+            raise cherrypy.HTTPError(
+                400,
+                "No sessions for this client ID exist. Please start a new authorization session.",
+            )
+
+        # Check if the session with the given sid exists in the list
+        for s in the_list:
+            if s.sid == sid:
+                session = s
+                break
+        else:
+            raise cherrypy.HTTPError(
+                400,
+                "No session with this sid exists for this client ID. Please start a new authorization session.",
+            )
+
+        # Use furl library to assemble the redirect URI with the redirect URI from the session.
+        # Parameters: state, code, and iss
+        redirect_uri = furl(session.redirect_uri)
+        if session.state is not None:
+            redirect_uri.args["state"] = session.state
+        redirect_uri.args["code"] = session.code
+        redirect_uri.args["iss"] = "{}/idp".format(cherrypy.request.base)
+
+        # Redirect browser to redirect_uri
+        raise cherrypy.HTTPRedirect(redirect_uri.url)
+
+    @cherrypy.expose
+    def token(self, *args, **kwargs):
+        client_id = self._desperately_find_client_id(kwargs, cherrypy.request)
+        if not client_id:
+            raise cherrypy.HTTPError(
+                400,
+                "Missing client_id! We looked for it in the URL and the request body, but we couldn't find it.",
+            )
+
+        # Retrieve all existing sessions to match code against
+        key = "sessions_" + client_id
+        client_sessions = self.cache.get(key, default=[])
+
+        test = TokenRequestTestSet(
+            self.platform_api,
+            cache=self.cache,
+            request=cherrypy.request,
+            client_sessions=client_sessions,
+            expected_client_id=client_id,
+        )
+        
 
     def _attach_test_results(self, client_id, test_results):
         key = "test_results_" + client_id
+        self._insert_into_cache_list(
+            key, test_results, self.MAX_TEST_RESULTS, self.TEST_RESULT_EXPIRATION
+        )
 
+    def _insert_into_cache_list(self, key, item, max_entries, expire):
         for i in range(
             self.MAX_RETRIES_CHECK_AND_SET
         ):  # Retry loop, probably it should be limited to some reasonable retries
-            all_results, cas_key = self.cache.gets(key)
-            if all_results is None:
-                all_results = [test_results]
-                self.cache.set(key, all_results, expire=self.TEST_RESULT_EXPIRATION)
+            the_list, cas_key = self.cache.gets(key)
+            if the_list is None:
+                the_list = [item]
+                self.cache.set(key, the_list, expire=expire)
                 return
             else:
                 # Insert latest result on the top
-                all_results.insert(0, test_results)
+                the_list.insert(0, item)
 
                 # Truncate the list to the max number of results
-                all_results = all_results[: self.MAX_TEST_RESULTS]
+                the_list = the_list[:max_entries]
 
-                if self.cache.cas(
-                    key, all_results, expire=self.TEST_RESULT_EXPIRATION, cas=cas_key
-                ):
+                if self.cache.cas(key, the_list, expire=expire, cas=cas_key):
                     return
 
-        raise Exception("Could not insert test results into cache")
+        raise Exception("Could not insert data item into cache")
 
     def _desperately_find_client_id(self, parameters, request):
         # Check if the client ID is in the URL or the form-encoded body
@@ -135,44 +260,6 @@ class Root:
         test_results = self.cache.get(f"test_results_{client_id}", default=[])
 
         # Mapping from RPTestResultStatus to text, bootstrap text color, description and icon
-        test_result_status_mapping = {
-            RPTestResultStatus.SUCCESS: {
-                "text": "Success",
-                "color": "success",
-                "description": "The feature is used correctly",
-                "icon": "check-circle",
-            },
-            RPTestResultStatus.WARNING: {
-                "text": "Warning",
-                "color": "warning",
-                "description": "The current usage of the feature may lead to problems in practice",
-                "icon": "exclamation-circle",
-            },
-            RPTestResultStatus.FAILURE: {
-                "text": "Failure",
-                "color": "danger",
-                "description": "This will lead to an error in practice",
-                "icon": "exclamation-circle",
-            },
-            RPTestResultStatus.SKIPPED: {
-                "text": "Test was skipped",
-                "color": "muted",
-                "description": "There was no need to run this test or the prerequisites are not met",
-                "icon": "slash-circle",
-            },
-            RPTestResultStatus.INFO: {
-                "text": "Info",
-                "color": "info",
-                "description": "Informative - not indicating a problem",
-                "icon": "info-circle",
-            },
-            RPTestResultStatus.WAITING: {
-                "text": "Waiting",
-                "color": "primary",
-                "description": "The test is waiting for a prerequisite to be met",
-                "icon": "question-circle",
-            },
-        }
 
         # Render the index.html.j2 template
         template = self.j2env.get_template("log.html")
@@ -182,7 +269,7 @@ class Root:
             test_results=test_results,
             id=id,
             Status=RPTestResultStatus,
-            SM=test_result_status_mapping,
+            SM=TEST_RESULT_STATUS_MAPPING,
         )
 
     def _get_client_config(self, client_id):
@@ -223,7 +310,7 @@ class WellKnown:
     @cherrypy.tools.json_out()
     def index(self):
         return {
-            "issuer": "{}/idp/".format(cherrypy.request.base),
+            "issuer": "{}/idp".format(cherrypy.request.base),
             "authorization_endpoint": "{}/idp/auth?predefined_parameter=1".format(
                 cherrypy.request.base
             ),

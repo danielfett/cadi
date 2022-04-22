@@ -1,0 +1,55 @@
+{% extends "_base.html" %} {% block header %}
+<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-white">
+    <a href="/" class="ms-3 mb-md-0 text-dark text-decoration-none fs-5">yes® CADI</a>
+    <div>
+        <h1 class="fs-4 mb-0 text-center">
+            Authorization Endpoint
+        </h1>
+    </div>
+    <ul class="nav nav-pills ma-3">
+        <li class="nav-item">
+            <a href="https://yes.com/docs/rp-devguide/latest/index.html" class="nav-link">Developer Guide</a>
+        </li>
+    </ul>
+</header>
+{% endblock %} {% block body %}
+
+<body>
+    <div class="container">
+        <p>
+            Thanks for visiting our authorization endpoint.
+        </p>
+        <h5>Test results</h5>
+        <table class="table">
+            {% for s, count in stats.items() %}
+            <tr class="{% if count == 0 %}text-muted{% endif %}">
+                <td class="text-end">{{ count }}</td>
+                <td><i class="bi bi-{{ SM[s].icon }} text-{{ SM[s].color }}" title="{{ SM[s].text }}"></i> {{ SM[s].text }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="/log?client_id={{ client_id }}" target="log_details" class="btn btn-secondary">View Details</a>
+            </div>
+                {% if not session_id %}
+                <div class="col-md-6 d-flex flex-column">
+                    <button type="button" class="btn btn-primary" style="margin-left: auto !important;" disabled>Continue</button>
+                    <p class="text-danger" style="text-align: right;">Please fix the failures before continuing.</p>
+                </div>
+                {% else %}
+                <form class="col-md-6 d-flex flex-column" action="/auth_continue" method="post">
+                    <input type="hidden" name="client_id" value="{{ client_id }}">
+                    <input type="hidden" name="sid" value="{{ session_id }}">
+                    <button type="submit" class="btn btn-primary" style="margin-left: auto !important;">Continue</button>
+                </form>
+
+                {% endif %}
+
+        </div>
+
+
+
+    </div>
+</body>
+{% endblock %}
