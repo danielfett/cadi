@@ -1,0 +1,57 @@
+{% extends "_base.html" %} {% block header %}
+<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-white">
+    <a href="/" class="ms-3 mb-md-0 text-dark text-decoration-none fs-5">yes® CADI</a>
+    <div>
+        <h1 class="fs-4 mb-0 text-center">
+            Authorization Endpoint
+        </h1>
+    </div>
+    <ul class="nav nav-pills ma-3">
+        <li class="nav-item">
+            <a href="https://yes.com/docs/rp-devguide/latest/index.html" class="nav-link">Developer Guide</a>
+        </li>
+    </ul>
+</header>
+{% endblock %} {% block body %}
+
+<body>
+    <div class="container">
+        <h4>
+            Which user claims should we deliver?
+        </h4>
+        <p>Feel free to modify the contents of the responses!</p>
+
+        <form action="/auth_continue" method="post">
+            <h5>ID Token</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="radio" value="left" name="id_token_content_selector"> Full claims
+                    <textarea name="id_token_content_left">{{ response_id_token_normal }}</textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <input type="radio" value="right" name="id_token_content_selector"> Minimal claims
+                    <textarea name="id_token_content_right">{{ response_id_token_normal }}</textarea>
+                    <small>We left out claims that some IDPs cannot provide.</small>
+                </div>
+            </div>
+            <h5>Userinfo</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="radio" value="left" name="userinfo_content_selector"> Full claims
+                    <textarea name="userinfo_content_left">{{ response_userinfo_normal }}</textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <input type="radio" value="right" name="userinfo_content_selector"> Minimal claims
+                    <textarea name="userinfo_content_right">{{ response_userinfo_normal }}</textarea>
+                    <small>We left out claims that some IDPs cannot provide.</small>
+                </div>
+            </div>
+            <input type="hidden" name="client_id" value="{{ client_id }}">
+            <input type="hidden" name="sid" value="{{ session_id }}">
+            <button type="submit" class="btn btn-primary">Continue</button>
+
+    </div>
+</body>
+{% endblock %}

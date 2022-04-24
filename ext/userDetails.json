@@ -1,0 +1,219 @@
+[
+  {
+    "user_id": "6b8520c9-6824-45de-9ce9-da5373d964d8",
+    "nickname": "Test User",
+    "email": "test@platform.yes.com",
+    "email_verified": false,
+    "phone_number": "+12025550136",
+    "phone_number_verified": false,
+    "given_name": "Andreas",
+    "family_name": "Wagner",
+    "gender": "Xumgender",
+    "https://www.yes.com/claims/title": "Prof. Dr. Dr.",
+    "birthdate": "1969-11-21",
+    "https://www.yes.com/claims/nationality": "DE",
+    "https://www.yes.com/claims/place_of_birth": {
+      "country": "US",
+      "locality": "Raccoon City"
+    },
+    "https://www.yes.com/claims/tax_id": "01072495633",
+    "https://www.yes.com/claims/preferred_iban": "DE12500105170648489890",
+    "consented": false
+  },
+  {
+    "user_id": "4e3ea9f5-2895-42c1-aa8a-9b5b726c708f",
+    "nickname": "Hans",
+    "email": "hans@platform.yes.com",
+    "email_verified": true,
+    "phone_number": "+12025550163",
+    "phone_number_verified": false,
+    "given_name": "Hans",
+    "family_name": "Hermann",
+    "gender": "male",
+    "https://www.yes.com/claims/salutation": "Herr",
+    "https://www.yes.com/claims/title": "Dr.",
+    "https://www.yes.com/claims/place_of_birth": {
+      "country": "DE",
+      "locality": "Rösrath"
+    },
+    "birthdate": "1985-12-06",
+    "https://www.yes.com/claims/nationality": "DE",
+    "address": {
+      "formatted": "Lüghauser Str. 16\nRösrath\nNRW\n51503\nDE",
+      "street_address": "Lüghauser Str. 16",
+      "locality": "Rösrath",
+      "region": "NRW",
+      "postal_code": "51503",
+      "country": "DE"
+    },
+    "verification": {
+      "organization": "Bank Y",
+      "date": "2013-02-21",
+      "id": "676q3636461467647q8498785747q487",
+      "method": "eID",
+      "eID": {
+        "country": "DE",
+        "type": "ID Card",
+        "identifier": "DE1234567890"
+      }
+    },
+    "https://www.yes.com/claims/tax_id": "02138097565",
+    "https://www.yes.com/claims/preferred_iban": "DE91100000000123456789",
+    "consented": false
+  },
+  {
+    "user_id": "8b9f9588-4ad1-4069-9c66-7231f79d41c0",
+    "nickname": "Peter",
+    "email": "peter@platform.yes.com",
+    "email_verified": true,
+    "phone_number": "+12025550143",
+    "phone_number_verified": true,
+    "given_name": "Peter",
+    "family_name": "Gottschalk",
+    "gender": "male",
+    "https://www.yes.com/claims/salutation": "Herr",
+    "birthdate": "1996-08-30",
+    "https://www.yes.com/claims/nationality": "DE",
+    "address": {
+      "formatted": "Heiligengeistbrücke 13\nOhrenbach\nFreistaat Bayern\n91620\nDE",
+      "street_address": "Heiligengeistbrücke 13",
+      "locality": "Ohrenbach",
+      "region": "Freistaat Bayern",
+      "postal_code": "91620",
+      "country": "DE"
+    },
+    "verification": {
+      "organization": "Bank Y",
+      "date": "2013-02-21",
+      "id": "676q3636461467647q8498785747q487",
+      "method": "identity_document",
+      "identity_document": {
+        "country": "DE",
+        "type": "Passersatz f. Ausländer",
+        "issuer": "Stadt Augsburg",
+        "number": "53554554",
+        "date_of_issuance": "2012-04-23",
+        "date_of_expiry": "2022-04-22",
+        "method": "Physical In-Person Proofing (shop)",
+        "agent": "Post AG"
+      }
+    },
+    "https://www.yes.com/claims/tax_id": "09736248057",
+    "https://www.yes.com/claims/preferred_iban": "DE87123456781234567890",
+    "consented": false
+  },
+  {
+    "user_id": "22ec590e-d76d-480c-b320-6e7ecbdd3d9b",
+    "nickname": "Paula",
+    "email": "paula@platform.yes.com",
+    "email_verified": true,
+    "phone_number": "+12025550150",
+    "phone_number_verified": true,
+    "given_name": "Paula",
+    "family_name": "Platform",
+    "gender": "female",
+    "https://www.yes.com/claims/salutation": "Frau",
+    "birthdate": "1982-03-07",
+    "https://www.yes.com/claims/nationality": "DE",
+    "address": {
+      "formatted": "Ruschestrasse 67\nIlsenburg\nSachsen-Anhalt\n38865\nDE",
+      "street_address": "Ruschestrasse 67",
+      "locality": "Ilsenburg",
+      "region": "Sachsen-Anhalt",
+      "postal_code": "38865",
+      "country": "DE"
+    },
+    "verification": {
+      "organization": "Bank Y",
+      "date": "2013-02-21",
+      "id": "676q3636461467647q8498785747q487",
+      "method": "qes",
+      "qes": {
+        "issuer": "de_bdr",
+        "certificate_id": "7367636467467154561546614"
+      }
+    },
+    "consented": false
+  },
+  {
+    "user_id": "dd58b19f-ee5d-4a14-af47-934b62c8137e",
+    "nickname": "Anna",
+    "email": "anna@platform.yes.com",
+    "email_verified": true,
+    "phone_number": "+12025550132",
+    "phone_number_verified": false,
+    "given_name": "Anne",
+    "family_name": "Mayer-Sjöberg",
+    "gender": "female",
+    "https://www.yes.com/claims/salutation": "Frau",
+    "https://www.yes.com/claims/title": "Prof.",
+    "https://www.yes.com/claims/place_of_birth": {
+      "country": "DE",
+      "locality": "Rösrath"
+    },
+    "birthdate": "1955-11-23",
+    "https://www.yes.com/claims/nationality": "DE",
+    "https://www.yes.com/claims/tax_id": "01072495644",
+    "https://www.yes.com/claims/preferred_iban": "DE12500105170648489811",
+    "address": {
+      "formatted": "Lüghauser Str. 16\nRösrath\nNRW\n51503\nDE",
+      "street_address": "Lüghauser Str. 16",
+      "locality": "Rösrath",
+      "region": "NRW",
+      "postal_code": "51503",
+      "country": "DE"
+    },
+    "verification": {
+      "organization": "Bank Y",
+      "date": "2018-02-21",
+      "id": "676q3636461467647q8222285747q487",
+      "method": "eID",
+      "eID": {
+        "country": "DE",
+        "type": "ID Card",
+        "identifier": "DE1234567892"
+      }
+    },
+    "consented": false
+  },
+  {
+    "user_id": "a79dd9dd-1ec0-47d0-a640-748f1d32d0e1",
+    "nickname": "Consented",
+    "email": "carsten@platform.yes.com",
+    "email_verified": true,
+    "phone_number": "+12025550163",
+    "phone_number_verified": false,
+    "given_name": "Carsten",
+    "family_name": "Onsented",
+    "gender": "male",
+    "https://www.yes.com/claims/salutation": "Herr",
+    "https://www.yes.com/claims/place_of_birth": {
+      "country": "DE",
+      "locality": "Rösrath"
+    },
+    "birthdate": "1945-12-01",
+    "https://www.yes.com/claims/nationality": "DE",
+    "address": {
+      "formatted": "Lüghauser Str. 17\nRösrath\nNRW\n51503\nDE",
+      "street_address": "Lüghauser Str. 17",
+      "locality": "Rösrath",
+      "region": "NRW",
+      "postal_code": "51503",
+      "country": "DE"
+    },
+    "verification": {
+      "organization": "Bank Y",
+      "date": "2013-02-21",
+      "id": "676q3636461467647q8498785747q487",
+      "method": "eID",
+      "eID": {
+        "country": "DE",
+        "type": "ID Card",
+        "identifier": "DE02938137566"
+      }
+    },
+    "https://www.yes.com/claims/tax_id": "02938137566",
+    "https://www.yes.com/claims/preferred_iban": "DE12110111545989711010",
+    "consented": true
+  }
+]

@@ -11,14 +11,25 @@ from pymemcache.client.base import Client as MemcacheClient
 from pymemcache.serde import PickleSerde
 from yaml import SafeLoader, load
 from furl import furl
+from cadi.idp.ekyc import YES_CLAIMS, YES_VERIFIED_CLAIMS, ClaimsProvider
+from cadi.idp.session import SessionManager
 
 from cadi.rptests.token import TokenRequestTestSet
+from cadi.rptests.userinfo import UserinfoRequestTestSet
 
 from .platform_api import PlatformAPI
 from .rptestmechanics import RPTestResultStatus
-from .rptests.par import PARRequestURIAuthorizationRequestTestSet
+from .rptests.par import (
+    PARRequestURIAuthorizationRequestTestSet,
+    PushedAuthorizationRequestTestSet,
+)
 from .rptests.traditional import TraditionalAuthorizationRequestTestSet
-from .tools import CLIENT_ID_PATTERN
+from .tools import (
+    CLIENT_ID_PATTERN,
+    create_self_signed_certificate,
+    convert_to_jwks,
+    insert_into_cache_list,
+)
 
 
 TEST_RESULT_STATUS_MAPPING = {
@@ -63,24 +74,55 @@ TEST_RESULT_STATUS_MAPPING = {
 
 class CADIDP:
     MAX_TEST_RESULTS = 10
-    MAX_OPEN_SESSIONS_PER_CLIENT = 10
-    SESSION_EXPIRATION = 60 * 60 * 3  # 3 hours
     TEST_RESULT_EXPIRATION = 60 * 60 * 12  # 12 hours
     MAX_RETRIES_CHECK_AND_SET = 12
 
-    def __init__(self, platform_api: PlatformAPI, cache: MemcacheClient, j2env):
+    def __init__(
+        self,
+        platform_api: PlatformAPI,
+        cache: MemcacheClient,
+        j2env,
+        server_certificate,
+        server_certificate_private_key,
+    ):
         self.platform_api = platform_api
         self.cache = cache
         self.j2env = j2env
+        self.server_certificate = server_certificate
+        self.server_certificate_private_key = server_certificate_private_key
+        self.session_manager = SessionManager(cache)
+        self.claims_provider = ClaimsProvider()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def par(self, *args, **kwargs):
+        client_id = self._test_for_client_id(kwargs)
+        test = PushedAuthorizationRequestTestSet(
+            self.platform_api,
+            cache=self.cache,
+            request=cherrypy.request,
+            expected_client_id=client_id,
+        )
+
+        test_results = test.run()
+        self._attach_test_results(client_id, test_results)
+
+        if not "session" in test.data:
+            return {
+                "error": "server_error",
+                "error_description": "We were not able to complete your request. "
+                f"Please check the logs available at {cherrypy.request.base}/logs?client_id={client_id} for any errors.",
+            }
+
+        else:
+            return {
+                "request_uri": test.data["session"].request_uri,
+                "expires_in": PARRequestURIAuthorizationRequestTestSet.REQUEST_URI_EXPIRE_WARNING_AFTER,
+            }
 
     @cherrypy.expose
     def auth(self, *args, **kwargs):
-        client_id = self._desperately_find_client_id(kwargs, cherrypy.request)
-        if not client_id:
-            raise cherrypy.HTTPError(
-                400,
-                "Missing client_id! We looked for it in the URL and the request body, but we couldn't find it.",
-            )
+        client_id = self._test_for_client_id(kwargs)
 
         if "request_uri" in kwargs:
             test_to_run = PARRequestURIAuthorizationRequestTestSet
@@ -98,17 +140,11 @@ class CADIDP:
         self._attach_test_results(client_id, test_results)
 
         if "session" in test.data:
-            # Store the session in the list of sessions for the client_id in the cache
-            key = "sessions_" + client_id
-            self._insert_into_cache_list(
-                key,
-                test.data["session"],
-                self.MAX_OPEN_SESSIONS_PER_CLIENT,
-                self.SESSION_EXPIRATION,
-            )
             session_id = test.data["session"].sid
+            users_list = self.claims_provider.get_all_users()
         else:
             session_id = None
+            users_list = []
 
         # Render the auth_ep.html template
         template = self.j2env.get_template("auth_ep.html")
@@ -119,29 +155,70 @@ class CADIDP:
             session_id=session_id,
             Status=RPTestResultStatus,
             SM=TEST_RESULT_STATUS_MAPPING,
+            users_list=users_list,
         )
 
     @cherrypy.expose
-    def auth_continue(self, client_id, sid):
-        # Check if a session with this sid exists for the given client_id
-        key = "sessions_" + client_id
-        the_list = self.cache.get(key)
-        if the_list is None:
-            raise cherrypy.HTTPError(
-                400,
-                "No sessions for this client ID exist. Please start a new authorization session.",
-            )
-
-        # Check if the session with the given sid exists in the list
-        for s in the_list:
-            if s.sid == sid:
-                session = s
-                break
-        else:
+    def auth_response_modifications(self, client_id, sid, user_id):
+        session = self.session_manager.find(client_id=client_id, sid=sid)
+        if session is None:
             raise cherrypy.HTTPError(
                 400,
                 "No session with this sid exists for this client ID. Please start a new authorization session.",
             )
+
+        response_id_token_normal = self.claims_provider.process_ekyc_request(
+            user_id, session, "id_token", False
+        )
+        response_id_token_minimal = self.claims_provider.process_ekyc_request(
+            user_id, session, "id_token", True
+        )
+        response_userinfo_normal = self.claims_provider.process_ekyc_request(
+            user_id, session, "userinfo", False
+        )
+        response_userinfo_minimal = self.claims_provider.process_ekyc_request(
+            user_id, session, "userinfo", True
+        )
+
+        # Render the auth_ep.html template
+        template = self.j2env.get_template("auth_ep_resp_mod.html")
+        return template.render(
+            client_id=client_id,
+            session_id=session.sid,
+            response_id_token_normal=response_id_token_normal,
+            response_id_token_minimal=response_id_token_minimal,
+            response_userinfo_normal=response_userinfo_normal,
+            response_userinfo_minimal=response_userinfo_minimal,
+        )
+
+    @cherrypy.expose
+    def auth_continue(
+        self,
+        client_id,
+        sid,
+        id_token_content_selector,
+        id_token_content_left,
+        id_token_content_right,
+        userinfo_content_selector,
+        userinfo_content_left,
+        userinfo_content_right,
+    ):
+        session = self.session_manager.find(client_id=client_id, sid=sid)
+        if session is None:
+            raise cherrypy.HTTPError(
+                400,
+                "No session with this sid exists for this client ID. Please start a new authorization session.",
+            )
+
+        if id_token_content_selector == "left":
+            session.id_token_response_contents = json.loads(id_token_content_left)
+        else:
+            session.id_token_response_contents = json.loads(id_token_content_right)
+
+        if userinfo_content_selector == "left":
+            session.userinfo_response_contents = json.loads(userinfo_content_left)
+        else:
+            session.userinfo_response_contents = json.loads(userinfo_content_right)
 
         # Use furl library to assemble the redirect URI with the redirect URI from the session.
         # Parameters: state, code, and iss
@@ -149,12 +226,13 @@ class CADIDP:
         if session.state is not None:
             redirect_uri.args["state"] = session.state
         redirect_uri.args["code"] = session.code
-        redirect_uri.args["iss"] = "{}/idp".format(cherrypy.request.base)
+        redirect_uri.args["iss"] = cherrypy.request.base + "/idp"
 
         # Redirect browser to redirect_uri
         raise cherrypy.HTTPRedirect(redirect_uri.url)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def token(self, *args, **kwargs):
         client_id = self._desperately_find_client_id(kwargs, cherrypy.request)
         if not client_id:
@@ -163,45 +241,86 @@ class CADIDP:
                 "Missing client_id! We looked for it in the URL and the request body, but we couldn't find it.",
             )
 
-        # Retrieve all existing sessions to match code against
-        key = "sessions_" + client_id
-        client_sessions = self.cache.get(key, default=[])
-
         test = TokenRequestTestSet(
             self.platform_api,
             cache=self.cache,
             request=cherrypy.request,
-            client_sessions=client_sessions,
             expected_client_id=client_id,
         )
-        
+
+        if not "session" in test.data:
+            return {
+                "error": "server_error",
+                "error_description": "We were unable to identify the session to which your request belongs. "
+                "Please ensure that your token request is conformant to the token request format defined in RFC6749! "
+                f"Please check the logs available at {cherrypy.request.base}/logs?client_id={client_id} for any errors.",
+            }
+
+        session = test.data["session"]
+
+        id_token = self._create_id_token(session)
+
+        return {
+            "access_token": session.access_token,
+            "id_token": id_token,
+            "token_type": "Bearer",
+            "expires_in": SessionManager.SESSION_EXPIRATION,
+            "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+        }
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def userinfo(self):
+        authorization_header = cherrypy.request.headers.get("authorization", None)
+
+        if authorization_header is None:
+            return {
+                "error": "invalid_request",
+                "error_description": "The request does not contain an 'Authorization' header. "
+                "You must provide the 'Authorization' header with an access token. "
+                "Please review the OpenID Connect core specification for the userinfo endpoint.",
+            }
+
+        if not authorization_header.startswith("Bearer "):
+            return {
+                "error": "invalid_request",
+                "error_description": "The Authorization header provided does not start with 'Bearer '. "
+                "Please review the OpenID Connect core specification for the userinfo endpoint.",
+            }
+
+        session = self.session_manager.find_by_access_token(authorization_header[7:])
+
+        if session is None:
+            return {
+                "error": "invalid_request",
+                "error_description": "The access token provided in the Authorization header is unknown or has expired. "
+                "Please review the OpenID Connect core specification for the userinfo endpoint.",
+            }
+
+        client_id = session.client_id
+
+        test = UserinfoRequestTestSet(
+            platform_api=self.platform_api,
+            cache=self.cache,
+            client_id=client_id,
+            session=session,
+        )
+
+        test.run()
+
+        return session.userinfo_response_contents
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def jwks(self):
+        # JWKS Endpoint: Serve the server certificate
+        return convert_to_jwks(self.server_certificate)
 
     def _attach_test_results(self, client_id, test_results):
         key = "test_results_" + client_id
-        self._insert_into_cache_list(
-            key, test_results, self.MAX_TEST_RESULTS, self.TEST_RESULT_EXPIRATION
+        insert_into_cache_list(
+            cache, key, test_results, self.MAX_TEST_RESULTS, self.TEST_RESULT_EXPIRATION
         )
-
-    def _insert_into_cache_list(self, key, item, max_entries, expire):
-        for i in range(
-            self.MAX_RETRIES_CHECK_AND_SET
-        ):  # Retry loop, probably it should be limited to some reasonable retries
-            the_list, cas_key = self.cache.gets(key)
-            if the_list is None:
-                the_list = [item]
-                self.cache.set(key, the_list, expire=expire)
-                return
-            else:
-                # Insert latest result on the top
-                the_list.insert(0, item)
-
-                # Truncate the list to the max number of results
-                the_list = the_list[:max_entries]
-
-                if self.cache.cas(key, the_list, expire=expire, cas=cas_key):
-                    return
-
-        raise Exception("Could not insert data item into cache")
 
     def _desperately_find_client_id(self, parameters, request):
         # Check if the client ID is in the URL or the form-encoded body
@@ -232,6 +351,18 @@ class CADIDP:
             return client_id.group(0)
 
         return None
+
+    def _test_for_client_id(self, kwargs):
+        client_id = self._desperately_find_client_id(kwargs, cherrypy.request)
+        if not client_id:
+            raise cherrypy.HTTPError(
+                400,
+                "Missing client_id! We looked for it in the URL and the request body, but we couldn't find it.",
+            )
+        return client_id
+
+    def _create_id_token(self, session):
+        return session.id_token_response_contents
 
 
 class Root:
@@ -310,16 +441,12 @@ class WellKnown:
     @cherrypy.tools.json_out()
     def index(self):
         return {
-            "issuer": "{}/idp".format(cherrypy.request.base),
-            "authorization_endpoint": "{}/idp/auth?predefined_parameter=1".format(
-                cherrypy.request.base
-            ),
-            "token_endpoint": "{}/idp/token".format(cherrypy.request.base),
-            "userinfo_endpoint": "{}/idp/userinfo".format(cherrypy.request.base),
-            "pushed_authorization_request_endpoint": "{}/idp/push_auth".format(
-                cherrypy.request.base
-            ),
-            "jwks_uri": "{}/idp/jwks".format(cherrypy.request.base),
+            "issuer": f"{cherrypy.request.base}/idp",
+            "authorization_endpoint": f"{cherrypy.request.base}/idp/auth?{TraditionalAuthorizationRequestTestSet.DUMMY_PARAMETER}=42",
+            "token_endpoint": f"{cherrypy.request.base}/idp/token",
+            "userinfo_endpoint": f"{cherrypy.request.base}/idp/userinfo",
+            "pushed_authorization_request_endpoint": f"{cherrypy.request.base}/idp/push_auth",
+            "jwks_uri": f"{cherrypy.request.base}/idp/jwks",
             "scopes_supported": ["openid"],
             "response_types_supported": ["code"],
             "response_modes_supported": ["query"],
@@ -351,33 +478,7 @@ class WellKnown:
                 "eID",
             ],
             "claim_types_supported": ["normal"],
-            "claims_supported": [
-                "sub",
-                "email",
-                "email_verified",
-                "phone_number",
-                "phone_number_verified",
-                "given_name",
-                "family_name",
-                "birthdate",
-                "address",
-                "birth_family_name",
-                "birth_middle_name",
-                "birth_given_name",
-                "salutation",
-                "title",
-                "place_of_birth",
-                "gender",
-                "nationalities",
-                "https://www.yes.com/claims/salutation",
-                "https://www.yes.com/claims/title",
-                "https://www.yes.com/claims/place_of_birth",
-                "https://www.yes.com/claims/nationality",
-                "https://www.yes.com/claims/verified_person_data",
-                "https://www.yes.com/claims/transaction_id",
-                "https://www.yes.com/claims/tax_id",
-                "https://www.yes.com/claims/preferred_iban",
-            ],
+            "claims_supported": ["sub"] + YES_CLAIMS.keys(),
             "claims_parameter_supported": True,
             "verified_claims_supported": True,
             "trust_frameworks_supported": ["de_aml"],
@@ -396,17 +497,7 @@ class WellKnown:
                 "de_replacement_idcard",
             ],
             "documents_methods_supported": ["pipp", "sripp"],
-            "claims_in_verified_claims_supported": [
-                "given_name",
-                "family_name",
-                "birthdate",
-                "birth_family_name",
-                "birth_middle_name",
-                "birth_given_name",
-                "place_of_birth",
-                "nationalities",
-                "address",
-            ],
+            "claims_in_verified_claims_supported": YES_VERIFIED_CLAIMS.keys(),
         }
 
 
@@ -418,6 +509,13 @@ if __name__ == "__main__":
 
     # Prepare Memcache client
     cache = MemcacheClient(("localhost", 11211), serde=PickleSerde())
+
+    # Get self-signed certificate from cache or create new one
+    cert_cache_key = "server_certificate"
+    (
+        server_certificate,
+        server_certificate_private_key,
+    ) = create_self_signed_certificate()
 
     # Prepare yes Platform API
     platform_api = PlatformAPI(
@@ -434,7 +532,11 @@ if __name__ == "__main__":
     # Start CherryPy server
     STATIC_PATH = os.path.abspath(os.path.dirname(__file__)) + "/../static"
     cherrypy.tree.mount(
-        Root(platform_api=platform_api, cache=cache, j2env=jinja2_env),
+        Root(
+            platform_api=platform_api,
+            cache=cache,
+            j2env=jinja2_env,
+        ),
         "/",
         config={
             "/": {
@@ -447,7 +549,13 @@ if __name__ == "__main__":
     )
 
     cherrypy.tree.mount(
-        CADIDP(platform_api=platform_api, cache=cache, j2env=jinja2_env),
+        CADIDP(
+            platform_api=platform_api,
+            cache=cache,
+            j2env=jinja2_env,
+            server_certificate=server_certificate,
+            server_certificate_private_key=server_certificate_private_key,
+        ),
         "/idp",
         config={"/": {"error_page.default": STATIC_PATH + "/error.html"}},
     )

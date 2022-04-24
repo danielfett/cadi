@@ -17,7 +17,7 @@
 <body>
     <div class="container">
         <p>
-            Thanks for visiting our authorization endpoint.
+            Thanks for visiting our authorization endpoint :)
         </p>
         <h5>Test results</h5>
         <table class="table">
@@ -32,24 +32,30 @@
             <div class="col-md-6">
                 <a href="/log?client_id={{ client_id }}" target="log_details" class="btn btn-secondary">View Details</a>
             </div>
-                {% if not session_id %}
-                <div class="col-md-6 d-flex flex-column">
-                    <button type="button" class="btn btn-primary" style="margin-left: auto !important;" disabled>Continue</button>
-                    <p class="text-danger" style="text-align: right;">Please fix the failures before continuing.</p>
-                </div>
-                {% else %}
-                <form class="col-md-6 d-flex flex-column" action="/auth_continue" method="post">
-                    <input type="hidden" name="client_id" value="{{ client_id }}">
-                    <input type="hidden" name="sid" value="{{ session_id }}">
-                    <button type="submit" class="btn btn-primary" style="margin-left: auto !important;">Continue</button>
-                </form>
-
-                {% endif %}
-
         </div>
+        <h5>Next Step</h5>
 
+        <div class="row">
+            <form class="col-md-6" action="/auth_response_modifications" method="post">
+                
+                {% if not session_id %}
+                <button type="button" class="btn btn-primary" disabled>Continue</button>
+                <p class="text-danger">Please fix the failures before continuing.</p>
+                {% else %}
+                Please select a user to continue:
+                <select name="user_id">
+                    {% for user in users_list %}
+                    <option value="{{ user['user_id'] }}">{{ user['nickname'] }}</option>
+                    {% endfor %}
+                </select>
+                <small>You can modify the user details in the response on the following screen.</small>
 
-
+                <input type="hidden" name="client_id" value="{{ client_id }}">
+                <input type="hidden" name="sid" value="{{ session_id }}">
+                <button type="submit" class="btn btn-primary">Continue</button> 
+                {% endif %}
+            </form>
+        </div>
     </div>
 </body>
 {% endblock %}

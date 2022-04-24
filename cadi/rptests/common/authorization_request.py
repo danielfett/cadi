@@ -728,6 +728,8 @@ class AuthorizationRequestTestSet(RPTestSet):
             authorization_details=authorization_details_parsed,
         )
 
+        self.session_manager.store(session)        
+
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "Authorization Endpoint was called successfully.",

@@ -70,7 +70,7 @@ class ClientIDTestSet(RPTestSet):
 
     t1002_client_id_is_not_deactivated.title = "Client ID status"
 
-    def t1003_client_id_is_unambiguous(self, client_id, expected_client_id):
+    def t1003_client_id_is_unambiguous(self, client_id, expected_client_id, **_):
         if client_id != expected_client_id:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,

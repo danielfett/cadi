@@ -125,7 +125,7 @@ class GETRequestTestSet(RPTestSet):
 
     t0000_is_get_request.title = "Request Method"
 
-    def t0001_request_url_assembled_correctly(self, request, **_):
+    def t0010_request_url_assembled_correctly(self, request, **_):
         # request is a cherrypy.request object
         # check that the URL (cherrypy.request.query_string) is a valid form-encoded URL and does not contain parameters of the form '?n=true?foo=bar'
 
@@ -158,21 +158,12 @@ class GETRequestTestSet(RPTestSet):
         payload = {
             key: value[0]
             for key, value in parsed.items()
-            if key != "predefined_parameter"
         }
 
-        if not "predefined_parameter" in parsed:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The parameter 'predefined_parameter' is missing. Please take care to pass on all parameters from the authorization_endpoint configuration.",
-                output_data={"payload": payload},
-            )
-        else:
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            "The request URL is properly formatted.",
+            output_data={"payload": payload},
+        )
 
-            return RPTestResult(
-                RPTestResultStatus.SUCCESS,
-                "The request URL is properly formatted.",
-                output_data={"payload": payload},
-            )
-
-    t0001_request_url_assembled_correctly.title = "Request URL"
+    t0010_request_url_assembled_correctly.title = "Request URL"

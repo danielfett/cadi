@@ -5,6 +5,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
+from cadi.idp.session import SessionManager
+
 
 class RPTestResultStatus(Enum):
     SUCCESS = "success"
@@ -106,6 +108,7 @@ class RPTestSet:
         self.platform_api = platform_api
         self.cache = cache
         self.data = data
+        self.session_manager = SessionManager(cache)
 
     def run(self):
         # Sort tXXX_* functions
