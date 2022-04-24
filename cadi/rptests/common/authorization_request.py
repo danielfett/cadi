@@ -1,9 +1,9 @@
 import json
 import re
-from ...rptestmechanics import RPTestSet, RPTestResult, RPTestResultStatus
-from . import validate_with_json_schema
 
 from ...idp.session import IDPSession
+from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
+from . import validate_with_json_schema
 
 
 class AuthorizationRequestTestSet(RPTestSet):
@@ -712,7 +712,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         code_challenge=None,
         code_challenge_method=None,
         authorization_details_parsed=None,
-        **_
+        **_,
     ):
         # Create IDPSession
         session = IDPSession(
@@ -728,7 +728,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             authorization_details=authorization_details_parsed,
         )
 
-        self.session_manager.store(session)        
+        self.session_manager.store(session)
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,

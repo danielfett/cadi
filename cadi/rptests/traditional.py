@@ -1,7 +1,8 @@
 from cadi.rptestmechanics import RPTestResult, RPTestResultStatus
-from .common.requests import GETRequestTestSet
+
 from .common.authorization_request import AuthorizationRequestTestSet
 from .common.client_id import ClientIDTestSet
+from .common.requests import GETRequestTestSet
 
 
 class TraditionalAuthorizationRequestTestSet(

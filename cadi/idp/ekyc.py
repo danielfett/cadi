@@ -3,7 +3,9 @@ import json
 import os
 from typing import Optional
 
-USER_DATA_PATH = os.path.abspath(os.path.dirname(__file__)) + "/../../ext/userDetails.json"
+USER_DATA_PATH = (
+    os.path.abspath(os.path.dirname(__file__)) + "/../../ext/userDetails.json"
+)
 
 
 @dataclass
@@ -21,7 +23,6 @@ class Claim:
 
 
 _yes_claims = (
-    Claim("nickname", False, False),
     Claim("email", False, False),
     Claim("email_verified", False, False),
     Claim("phone_number", False, True),
@@ -65,13 +66,10 @@ _yes_claims = (
 YES_CLAIMS = {c.name: c for c in _yes_claims}
 YES_VERIFIED_CLAIMS = {c.name: c for c in _yes_claims if c.can_be_verified}
 
-class ClaimNotDefinedException(Exception):
-    pass
-
 
 class ClaimsProvider:
     def __init__(self):
-        with open(USER_DATA_PATH, 'r') as f:
+        with open(USER_DATA_PATH, "r") as f:
             self.users = json.loads(f.read())
 
     def get_all_users(self):

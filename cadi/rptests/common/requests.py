@@ -1,5 +1,6 @@
 from urllib.parse import parse_qs
-from ...rptestmechanics import RPTestSet, RPTestResult, RPTestResultStatus
+
+from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 
 
 def dump_cherrypy_request_headers(request):

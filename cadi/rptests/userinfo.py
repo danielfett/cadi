@@ -1,6 +1,5 @@
-
-from cadi.rptestmechanics import RPTestResult, RPTestResultStatus
-from cadi.rptests.common.client_authentication import ClientAuthenticationTestSet
+from cadi.rptests.common.client_authentication import \
+    ClientAuthenticationTestSet
 from cadi.rptests.common.requests import GETRequestTestSet
 
 

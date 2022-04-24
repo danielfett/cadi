@@ -1,11 +1,10 @@
 from datetime import datetime
-import json
-from ..rptestmechanics import RPTestResult, RPTestResultStatus
 
-from .common.requests import POSTRequestTestSet, GETRequestTestSet
+from ..rptestmechanics import RPTestResult, RPTestResultStatus
 from .common.authorization_request import AuthorizationRequestTestSet
-from .common.client_id import ClientIDTestSet
 from .common.client_authentication import ClientAuthenticationTestSet
+from .common.client_id import ClientIDTestSet
+from .common.requests import GETRequestTestSet, POSTRequestTestSet
 
 
 class PushedAuthorizationRequestTestSet(

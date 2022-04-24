@@ -1,6 +1,6 @@
 import re
 
-from ...rptestmechanics import RPTestSet, RPTestResult, RPTestResultStatus
+from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 from ...tools import CLIENT_ID_PATTERN
 
 

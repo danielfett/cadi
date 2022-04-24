@@ -1,5 +1,6 @@
-from dataclasses import replace
+import base64
 from datetime import datetime, timedelta
+from random import random
 import cryptography
 from jwcrypto import jwk
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -8,6 +9,12 @@ from cryptography.hazmat.primitives.serialization import Encoding
 CLIENT_ID_PATTERN = (
     r"sandbox.yes.com:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 )
+
+
+def random_string_base64(length: int) -> str:
+    return base64.urlsafe_b64encode(
+        bytes(random.SystemRandom().getrandbits(8) for _ in range(length))
+    ).decode("utf-8")
 
 
 def create_self_signed_certificate():

@@ -1,18 +1,10 @@
-import base64
-from os import access
-import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from cadi.tools import insert_into_cache_list
+from cadi.tools import insert_into_cache_list, random_string_base64
 
 
-def random_string_base64(length: int) -> str:
-
-    return base64.urlsafe_b64encode(
-        bytes(random.SystemRandom().getrandbits(8) for _ in range(length))
-    ).decode("utf-8")
 
 
 @dataclass
