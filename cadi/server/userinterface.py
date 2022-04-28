@@ -1,7 +1,7 @@
 import re
 
 import cherrypy
-from cadi.tools import CLIENT_ID_PATTERN
+from cadi.tools import CLIENT_ID_PATTERN, get_base_url
 
 from ..rptestmechanics import RPTestResultStatus
 
@@ -83,7 +83,7 @@ class UserInterface:
             id=id,
             Status=RPTestResultStatus,
             SM=TEST_RESULT_STATUS_MAPPING,
-            iss=f"{ cherrypy.request.base }/idp",
+            iss=f"{ get_base_url() }/idp",
             len=len,
         )
 

@@ -17,7 +17,7 @@ from ..rptests.par import (
     PushedAuthorizationRequestTestSet,
 )
 from ..rptests.traditional import TraditionalAuthorizationRequestTestSet
-from ..tools import CLIENT_ID_PATTERN, json_handler, jwk_to_jwks
+from ..tools import CLIENT_ID_PATTERN, json_handler, jwk_to_jwks, get_base_url
 
 
 class IDP:
@@ -58,7 +58,7 @@ class IDP:
             return {
                 "error": "server_error",
                 "error_description": "We were not able to complete your request. "
-                f"Please check the logs available at {cherrypy.request.base}/logs?client_id={client_id} for any errors.",
+                f"Please check the logs available at {get_base_url()}/logs?client_id={client_id} for any errors.",
             }
 
         else:
@@ -185,7 +185,7 @@ class IDP:
         if session.state is not None:
             redirect_uri.args["state"] = session.state
         redirect_uri.args["code"] = session.authorization_code
-        redirect_uri.args["iss"] = cherrypy.request.base + "/idp"
+        redirect_uri.args["iss"] = get_base_url() + "/idp"
 
         # Redirect browser to redirect_uri
         raise cherrypy.HTTPRedirect(redirect_uri.url)
@@ -216,7 +216,7 @@ class IDP:
                 "error": "server_error",
                 "error_description": "We were unable to identify the session to which your request belongs. "
                 "Please ensure that your token request is conformant to the token request format defined in RFC6749! "
-                f"Please check the logs available at {cherrypy.request.base}/logs?client_id={client_id} for any errors.",
+                f"Please check the logs available at {get_base_url()}/logs?client_id={client_id} for any errors.",
             }
 
         session = test.data["session"]
@@ -331,7 +331,7 @@ class IDP:
 
     def _create_id_token(self, session):
         claims = session.id_token_response_contents
-        claims['iss'] = cherrypy.request.base + "/idp"
+        claims['iss'] = get_base_url() + "/idp"
         claims['aud'] = session.client_id
         claims['iat'] = int(time.time())
         claims['exp'] = int(time.time()) + 3600
@@ -368,12 +368,12 @@ class WellKnown:
     @cherrypy.tools.json_out(handler=json_handler)
     def index(self):
         return {
-            "issuer": f"{cherrypy.request.base}/idp",
-            "authorization_endpoint": f"{cherrypy.request.base}/idp/auth?{TraditionalAuthorizationRequestTestSet.DUMMY_PARAMETER}=42",
-            "token_endpoint": f"{cherrypy.request.base}/idp/token",
-            "userinfo_endpoint": f"{cherrypy.request.base}/idp/userinfo",
-            "pushed_authorization_request_endpoint": f"{cherrypy.request.base}/idp/push_auth",
-            "jwks_uri": f"{cherrypy.request.base}/idp/jwks",
+            "issuer": f"{get_base_url()}/idp",
+            "authorization_endpoint": f"{get_base_url()}/idp/auth?{TraditionalAuthorizationRequestTestSet.DUMMY_PARAMETER}=42",
+            "token_endpoint": f"{get_base_url()}/idp/token",
+            "userinfo_endpoint": f"{get_base_url()}/idp/userinfo",
+            "pushed_authorization_request_endpoint": f"{get_base_url()}/idp/push_auth",
+            "jwks_uri": f"{get_base_url()}/idp/jwks",
             "scopes_supported": ["openid"],
             "response_types_supported": ["code"],
             "response_modes_supported": ["query"],

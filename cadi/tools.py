@@ -4,11 +4,18 @@ import random
 from cryptography.hazmat.primitives.serialization import Encoding
 from jwcrypto.jwk import JWK
 import string
+import os
 
 
 CLIENT_ID_PATTERN = (
     r"sandbox.yes.com:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 )
+
+
+def get_base_url():
+    if (hostname := os.environ.get("WEBSITE_HOSTNAME", None)):
+        return "https://" + hostname
+    return os.environ.get("CADI_BASE_URL", cherrypy.request.base)
 
 
 def json_handler(*args, **kwargs):
@@ -17,12 +24,13 @@ def json_handler(*args, **kwargs):
 
 
 def random_string_base64(length: int) -> str:
-    return ''.join(random.choices(string.digits + string.ascii_letters, k=length))
+    return "".join(random.choices(string.digits + string.ascii_letters, k=length))
 
 
 def create_new_jwk():
     jwk = JWK.generate(kty="RSA", size=2048)
     return jwk
+
 
 def jwk_to_jwks(jwk):
     jwk_dict = jwk.export_public(as_dict=True)
@@ -31,4 +39,3 @@ def jwk_to_jwks(jwk):
     # Create a JWKS from the public key, including the x5c property
     jwks = {"keys": [jwk_dict]}
     return jwks
-

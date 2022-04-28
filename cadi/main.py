@@ -13,14 +13,6 @@ from .platform_api import PlatformAPI
 from .tools import create_new_jwk
 
 if __name__ == "__main__":
-    #
-    # Environment variables:
-    # - CADI_MTLS_HEADER - The name of the header that contains the client TLS certificate
-    # - CADI_PLATFORM_CLIENT_ID - The client ID for the platform API
-    # - CADI_PLATFORM_CLIENT_CERTIFICATE_B64 - The client TLS certificate for the platform API. PEM format, additionally base64 encoded to fit into an environment variable
-    # - CADI_PLATFORM_CLIENT_PRIVATE_KEY_B64 - The client TLS private key for the platform API. PEM format, additionally base64 encoded to fit into an environment variable
-    # - CADI_PLATFORM_ENVIRONMENT - The environment for the platform API
-
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="CADI Server")
     parser.add_argument("platform_credentials_file", type=argparse.FileType("r"))
@@ -34,7 +26,6 @@ if __name__ == "__main__":
     server_jwk = create_new_jwk()
 
     # Prepare yes Platform API
-    # TODO - Take from environment variables
     platform_api = PlatformAPI(
         **load(args.platform_credentials_file.read(), Loader=SafeLoader), cache=cache
     )
@@ -83,6 +74,8 @@ if __name__ == "__main__":
         WellKnown(),
         "/idp/.well-known",
     )
+
+    cherrypy.server.socket_host = '0.0.0.0'
 
     cherrypy.engine.start()
     cherrypy.engine.block()
