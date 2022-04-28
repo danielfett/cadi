@@ -65,7 +65,7 @@ class PlatformAPI:
 
     def get_client_config_with_cache(self, client_id):
         # Check if this client_id is in the cache
-        if not (client_config := self.cache.get(f"client_config-{client_id}")):
+        if not (client_config := self.cache.get(("client_config", client_id))):
             # Get client configuration from directory
             try:
                 client_config = self.get_client_config(client_id)
@@ -76,7 +76,7 @@ class PlatformAPI:
 
             # Store client configuration in cache
             self.cache.set(
-                f"client_config-{client_id}",
+                ("client_config", client_id),
                 client_config,
                 expire=self.EXPIRE_CLIENT_CONFIG,
             )

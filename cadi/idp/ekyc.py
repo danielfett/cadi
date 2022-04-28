@@ -19,7 +19,7 @@ class Claim:
 
     def extract(self, data_source):
         raw = data_source.get(self.userdata_name or self.name, None)
-        return self.transform_fn[raw]
+        return self.transform_fn(raw)
 
 
 _yes_claims = (
@@ -102,7 +102,7 @@ class ClaimsProvider:
                 and c.can_be_verified
                 and (not minimal or c.is_typically_available)
             ):
-                output[c.name] = val
+                verified_claims_output[c.name] = val
 
         verification_output = {}
 

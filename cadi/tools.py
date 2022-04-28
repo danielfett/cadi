@@ -1,9 +1,9 @@
-import base64
-from datetime import datetime, timedelta
-from random import random
-import cryptography
-from jwcrypto import jwk
+import cherrypy
+import json
+import random
 from cryptography.hazmat.primitives.serialization import Encoding
+from jwcrypto.jwk import JWK
+import string
 
 
 CLIENT_ID_PATTERN = (
@@ -11,92 +11,24 @@ CLIENT_ID_PATTERN = (
 )
 
 
+def json_handler(*args, **kwargs):
+    value = cherrypy.serving.request._json_inner_handler(*args, **kwargs)
+    return json.dumps(value, indent=4).encode("utf-8")
+
+
 def random_string_base64(length: int) -> str:
-    return base64.urlsafe_b64encode(
-        bytes(random.SystemRandom().getrandbits(8) for _ in range(length))
-    ).decode("utf-8")
+    return ''.join(random.choices(string.digits + string.ascii_letters, k=length))
 
 
-def create_self_signed_certificate():
-    """
-    Create a self-signed certificate.
-    """
-    private_key = cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=cryptography.hazmat.backends.default_backend(),
-    )
-    public_key = private_key.public_key()
+def create_new_jwk():
+    jwk = JWK.generate(kty="RSA", size=2048)
+    return jwk
 
-    builder = cryptography.x509.CertificateBuilder()
-    builder = builder.subject_name(
-        cryptography.x509.Name(
-            [
-                cryptography.x509.NameAttribute(
-                    cryptography.x509.oid.NameOID.COMMON_NAME, "localhost"
-                )
-            ]
-        )
-    )
-    builder = builder.issuer_name(
-        cryptography.x509.Name(
-            [
-                cryptography.x509.NameAttribute(
-                    cryptography.x509.oid.NameOID.COMMON_NAME, "localhost"
-                )
-            ]
-        )
-    )
-    builder = builder.not_valid_before(datetime.today())
-    builder = builder.not_valid_after(datetime.today() + timedelta(days=365))
-    builder = builder.serial_number(cryptography.x509.random_serial_number())
-    builder = builder.public_key(public_key)
+def jwk_to_jwks(jwk):
+    jwk_dict = jwk.export_public(as_dict=True)
+    jwk_dict["use"] = ["sig"]
+    jwk_dict["kid"] = "default"
+    # Create a JWKS from the public key, including the x5c property
+    jwks = {"keys": [jwk_dict]}
+    return jwks
 
-    certificate = builder.sign(
-        private_key=private_key,
-        algorithm=cryptography.hazmat.primitives.hashes.SHA256(),
-        backend=cryptography.hazmat.backends.default_backend(),
-    )
-
-    return certificate, private_key
-
-
-def convert_to_jwks(certificate):
-    """
-    Convert a certificate to a JWK.
-    """
-    public_key = certificate.public_key()
-    public_key_jwk = jwk.JWK.from_public_key(public_key, alg="RS256")
-    public_key_jwk.kid = "yes-sandbox-client-id"
-    public_key_jwk.use = "sig"
-    public_key_jwk.x5c = [certificate.public_bytes(Encoding.PEM).decode("utf-8")]
-    return public_key_jwk
-
-
-MAX_RETRIES_CHECK_AND_SET = 7
-
-
-def insert_into_cache_list(cache, key, item, max_entries, expire, replace_by_key=None):
-    for i in range(MAX_RETRIES_CHECK_AND_SET):
-        # Retry loop, limited to some reasonable retries
-        the_list, cas_key = cache.gets(key)
-        if the_list is None:
-            the_list = [item]
-            cache.set(key, the_list, expire=expire)
-            return
-        else:
-            if replace_by_key:
-                for e in the_list:
-                    if getattr(e, replace_by_key) == getattr(item, replace_by_key):
-                        the_list.remove(e)
-
-            # Insert latest result on the top
-            the_list.insert(0, item)
-
-            # Truncate the list to the max number of results
-            the_list = the_list[:max_entries]
-
-            if cache.cas(key, the_list, expire=expire, cas=cas_key):
-                return
-
-    raise Exception("Could not insert data item into cache")

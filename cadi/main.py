@@ -3,33 +3,38 @@ import os
 
 import cherrypy
 import jinja2
-from pymemcache.client.base import Client as MemcacheClient
-from pymemcache.serde import PickleSerde
+from cadi.cache import CADICache
 from yaml import SafeLoader, load
 
-from cadi.server.idp import IDP
+from cadi.server.idp import IDP, WellKnown
 from cadi.server.userinterface import UserInterface
 
 from .platform_api import PlatformAPI
-from .tools import create_self_signed_certificate
+from .tools import create_new_jwk
 
 if __name__ == "__main__":
+    #
+    # Environment variables:
+    # - CADI_MTLS_HEADER - The name of the header that contains the client TLS certificate
+    # - CADI_PLATFORM_CLIENT_ID - The client ID for the platform API
+    # - CADI_PLATFORM_CLIENT_CERTIFICATE_B64 - The client TLS certificate for the platform API. PEM format, additionally base64 encoded to fit into an environment variable
+    # - CADI_PLATFORM_CLIENT_PRIVATE_KEY_B64 - The client TLS private key for the platform API. PEM format, additionally base64 encoded to fit into an environment variable
+    # - CADI_PLATFORM_ENVIRONMENT - The environment for the platform API
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="CADI Server")
     parser.add_argument("platform_credentials_file", type=argparse.FileType("r"))
     args = parser.parse_args()
 
     # Prepare Memcache client
-    cache = MemcacheClient(("localhost", 11211), serde=PickleSerde())
+    cache = CADICache()
 
     # Get self-signed certificate from cache or create new one
-    cert_cache_key = "server_certificate"
-    (
-        server_certificate,
-        server_certificate_private_key,
-    ) = create_self_signed_certificate()
+    cert_cache_key = "server_jwk"
+    server_jwk = create_new_jwk()
 
     # Prepare yes Platform API
+    # TODO - Take from environment variables
     platform_api = PlatformAPI(
         **load(args.platform_credentials_file.read(), Loader=SafeLoader), cache=cache
     )
@@ -65,11 +70,13 @@ if __name__ == "__main__":
             platform_api=platform_api,
             cache=cache,
             j2env=jinja2_env,
-            server_certificate=server_certificate,
-            server_certificate_private_key=server_certificate_private_key,
+            server_jwk=server_jwk,
         ),
         "/idp",
-        config={"/": {"error_page.default": STATIC_PATH + "/error.html"}},
+        config={"/": {"error_page.default": STATIC_PATH + "/error.html"},
+        "/token": {"error_page.default": IDP.json_error_page},
+        "/par": {"error_page.default": IDP.json_error_page},
+        },
     )
 
     cherrypy.tree.mount(

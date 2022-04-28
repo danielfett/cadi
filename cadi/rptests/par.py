@@ -16,6 +16,8 @@ class PushedAuthorizationRequestTestSet(
     NAME = "Pushed Authorization Request (RFC9126)"
     DESCRIPTION = "Backend Pushed Authorization Request as defined in RFC9126."
 
+    STARTS_NEW = True
+
 
 class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSet):
     NAME = "Authorization Request following Pushed Authorization Request"

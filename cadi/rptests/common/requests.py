@@ -1,4 +1,5 @@
 from urllib.parse import parse_qs
+import cherrypy 
 
 from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 
@@ -56,35 +57,24 @@ class POSTRequestTestSet(RPTestSet):
     t0001_mime_type_is_form_encoded.title = "Content-Type header"
 
     def t0002_body_encoded_correctly(self, request, **_):
-        try:
-            parsed = parse_qs(
-                request.body.fullvalue(), strict_parsing=True, errors="strict"
-            )
-        except Exception as e:
-            return RPTestResult(
-                RPTestResultStatus.FAILURE,
-                f"The request body does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The body must be form-encoded.",
-                extra_details=str(e),
-            )
-
-        # ensure that in the parsed dict, each field only contains one value
-        for key, value in parsed.items():
-            if len(value) != 1:
-                return RPTestResult(
-                    RPTestResultStatus.FAILURE,
-                    f"Each parameter must only be sent once. The parameter '{key}' is sent {len(value)} times.",
-                )
-
-        # use the first instance of each parameter in the output payload dict
-        payload = {
-            key: value[0]
-            for key, value in parsed.items()
-        }
-
+        ## ensure that in the parsed dict, each field only contains one value
+        #for key, value in parsed.items():
+        #    if len(value) != 1:
+        #        return RPTestResult(
+        #            RPTestResultStatus.FAILURE,
+        #            f"Each parameter must only be sent once. The parameter '{key}' is sent {len(value)} times.",
+        #        )
+        #
+        ## use the first instance of each parameter in the output payload dict
+        #payload = {
+        #    key: value[0]
+        #    for key, value in parsed.items()
+        #}
+        # TODO: The checks above should be ran!
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "The request body is properly formatted.",
-            output_data={"payload": payload},
+            output_data={"payload": request.body_params},
         )
 
     t0002_body_encoded_correctly.title = "Request body"
@@ -134,6 +124,12 @@ class GETRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part '{request.query_string}' must not contain a question mark.",
+            )
+
+        if request.query_string == "":
+            return RPTestResult(
+                RPTestResultStatus.SUCCESS,
+                "The request URL is properly formatted.",
             )
 
         try:

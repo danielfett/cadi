@@ -129,9 +129,11 @@ class AuthorizationRequestTestSet(RPTestSet):
         if not success:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                "The claims parameter is not valid (see below for details).",
+                "The JSON structure in the claims parameter is not valid (see below for details).",
                 extra_details=error,
             )
+
+        problems = []
 
         # Assemble information on the claims used
         unverified_claims_requested = []
@@ -144,6 +146,12 @@ class AuthorizationRequestTestSet(RPTestSet):
             for claim in claims_parsed[endpoint].keys():
                 if claim == "verified_claims":
                     continue
+                problems.extend(
+                    f"unverified claim '{claim}' in {endpoint} endpoint: {p}"
+                    for p in self._check_claim_request_value(
+                        claims_parsed[endpoint][claim]
+                    )
+                )
                 unverified_claims_requested.append(claim)
 
             # then check if verified_claims is present
@@ -157,25 +165,68 @@ class AuthorizationRequestTestSet(RPTestSet):
 
             # read the verified claims
             for claim in verified_claims["claims"].keys():
+                problems.extend(
+                    f"verified claim '{claim}' in {endpoint} endpoint: {p}"
+                    for p in self._check_claim_request_value(
+                        verified_claims["claims"][claim]
+                    )
+                )
                 verified_claims_requested.append(claim)
 
         unverified_claims_requested = set(unverified_claims_requested)
         verified_claims_requested = set(verified_claims_requested)
 
-        return RPTestResult(
-            RPTestResultStatus.SUCCESS,
-            "The claims parameter is valid according to the specification.",
-            output_data={
-                "unverified_claims_requested": unverified_claims_requested,
-                "verified_claims_requested": verified_claims_requested,
-            },
-            service_information={
-                "Claims (verified) requested": ", ".join(verified_claims_requested),
-                "Claims (unverified) requested": ", ".join(unverified_claims_requested),
-            },
-        )
+        if not len(problems):
+            return RPTestResult(
+                RPTestResultStatus.SUCCESS,
+                "The claims parameter is valid according to the specification.",
+                output_data={
+                    "unverified_claims_requested": unverified_claims_requested,
+                    "verified_claims_requested": verified_claims_requested,
+                },
+                service_information={
+                    "Claims (verified) requested": ", ".join(verified_claims_requested),
+                    "Claims (unverified) requested": ", ".join(
+                        unverified_claims_requested
+                    ),
+                },
+            )
+        else:
+            return RPTestResult(
+                RPTestResultStatus.WARNING,
+                "There are problems with one or more claims. See details below.",
+                output_data={
+                    "unverified_claims_requested": unverified_claims_requested,
+                    "verified_claims_requested": verified_claims_requested,
+                },
+                service_information={
+                    "Claims (verified) requested": ", ".join(verified_claims_requested),
+                    "Claims (unverified) requested": ", ".join(
+                        unverified_claims_requested
+                    ),
+                },
+                extra_details="\n".join(problems),
+            )
 
     t3021_claims_valid.title = "Claims parameter format"
+
+    def _check_claim_request_value(self, claim_request):
+        if claim_request is None:
+            return
+
+        if not isinstance(claim_request, dict):
+            yield "Claim must either be 'null' or a JSON object"
+
+        if list(claim_request.keys()) != ["essential"]:
+            yield (
+                "Claim should be 'null' or a JSON object with the key 'essential'. "
+                "Other keys should not be used."
+            )
+
+        if not isinstance(claim_request["essential"], bool):
+            yield "The value of 'essential' must be a boolean."
+
+        return
 
     def t3022_claims_within_allowed_claims(
         self, client_config, unverified_claims_requested, verified_claims_requested, **_
@@ -449,7 +500,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3070_nonce_value_valid.title = "Nonce parameter use"
 
     def t3071_nonce_not_reused(self, client_id, nonce, **_):
-        key = f"nonce-list-{client_id}"
+        key = ("nonce-list", client_id)
         # check whether nonce matches any of the previously stored values from cache
         previous_nonces = self.cache.get(key, default=[])
         if len(previous_nonces) == 0:
@@ -564,7 +615,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     ]
 
     def t3083_pkce_parameter_reuse(self, client_id, code_challenge, **_):
-        key = f"pkce-list-{client_id}"
+        key = ("pkce-list", client_id)
         # check whether code_challenge matches any of the previously stored values from cache
         previous_code_challenges = self.cache.get(key, default=[])
         if len(previous_code_challenges) == 0:

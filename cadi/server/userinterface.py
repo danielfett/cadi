@@ -26,7 +26,7 @@ TEST_RESULT_STATUS_MAPPING = {
     },
     RPTestResultStatus.SKIPPED: {
         "text": "Test was skipped",
-        "color": "muted",
+        "color": "secondary",
         "description": "There was no need to run this test or the prerequisites are not met",
         "icon": "slash-circle",
     },
@@ -68,7 +68,9 @@ class UserInterface:
     def log(self, client_id):
         client_config = self._get_client_config(client_id)
 
-        test_results = self.cache.get(f"test_results_{client_id}", default=[])
+        test_results = self.cache.get(("test_results", client_id), default=[])
+        # test_results.reverse() - results in arbitrary order - strange!
+        tr_reversed = test_results[::-1]
 
         # Mapping from RPTestResultStatus to text, bootstrap text color, description and icon
 
@@ -77,10 +79,12 @@ class UserInterface:
         return template.render(
             client_id=client_id,
             client_config=client_config,
-            test_results=test_results,
+            test_results=tr_reversed,
             id=id,
             Status=RPTestResultStatus,
             SM=TEST_RESULT_STATUS_MAPPING,
+            iss=f"{ cherrypy.request.base }/idp",
+            len=len,
         )
 
     def _get_client_config(self, client_id):

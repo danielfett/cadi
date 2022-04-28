@@ -1,5 +1,5 @@
 {% extends "_base.html" %} {% block header %}
-<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-white">
+<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top">
     <a href="/" class="ms-3 mb-md-0 text-dark text-decoration-none fs-5">yes® CADI</a>
     <div>
         <h1 class="fs-4 mb-0 text-center">
@@ -16,45 +16,50 @@
 
 <body>
     <div class="container">
-        <p>
+        <h4>
             Thanks for visiting our authorization endpoint :)
-        </p>
-        <h5>Test results</h5>
-        <table class="table">
-            {% for s, count in stats.items() %}
-            <tr class="{% if count == 0 %}text-muted{% endif %}">
-                <td class="text-end">{{ count }}</td>
-                <td><i class="bi bi-{{ SM[s].icon }} text-{{ SM[s].color }}" title="{{ SM[s].text }}"></i> {{ SM[s].text }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <div class="row">
+        </h4>
+        <div class="row mt-5">
             <div class="col-md-6">
-                <a href="/log?client_id={{ client_id }}" target="log_details" class="btn btn-secondary">View Details</a>
-            </div>
-        </div>
-        <h5>Next Step</h5>
-
-        <div class="row">
-            <form class="col-md-6" action="/auth_response_modifications" method="post">
-                
-                {% if not session_id %}
-                <button type="button" class="btn btn-primary" disabled>Continue</button>
-                <p class="text-danger">Please fix the failures before continuing.</p>
-                {% else %}
-                Please select a user to continue:
-                <select name="user_id">
-                    {% for user in users_list %}
-                    <option value="{{ user['user_id'] }}">{{ user['nickname'] }}</option>
+                <h5>Test results</h5>
+                <table class="table">
+                    {% for s, count in stats.items() %}
+                    <tr class="{% if count == 0 %}text-muted{% endif %}">
+                        <td class="text-end">{{ count }}</td>
+                        <td><i class="bi bi-{{ SM[s].icon }} text-{{ SM[s].color }}" title="{{ SM[s].text }}"></i> {{ SM[s].text }}</td>
+                    </tr>
                     {% endfor %}
-                </select>
-                <small>You can modify the user details in the response on the following screen.</small>
+                </table>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="/log?client_id={{ client_id }}" target="log_details" class="btn btn-secondary mt-3">View Details</a>
+                    </div>
+                </div>
+            </div>
 
-                <input type="hidden" name="client_id" value="{{ client_id }}">
-                <input type="hidden" name="sid" value="{{ session_id }}">
-                <button type="submit" class="btn btn-primary">Continue</button> 
-                {% endif %}
-            </form>
+            <div class="col-md-6">
+                <h5>Next Step</h5>
+
+                    <form action="auth_response_modifications" method="post">
+                        
+                        {% if not session_id %}
+                        <button type="button" class="btn btn-primary" disabled>Continue</button>
+                        <p class="text-danger">Please fix the failures before continuing.</p>
+                        {% else %}
+                        Please select a user to continue:
+                        <select name="user_id">
+                            {% for user in users_list %}
+                            <option value="{{ user['user_id'] }}">{{ user['nickname'] }}</option>
+                            {% endfor %}
+                        </select><br>
+                        <small>You can modify the user details in the response on the following screen.</small>
+
+                        <input type="hidden" name="client_id" value="{{ client_id }}">
+                        <input type="hidden" name="sid" value="{{ session_id }}">
+                        <div><button type="submit" class="btn btn-primary mt-3">Continue</button></div> 
+                        {% endif %}
+                    </form>
+            </div>
         </div>
     </div>
 </body>

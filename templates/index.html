@@ -18,8 +18,8 @@
             <p class="lead">
                 <form class="col-align-self-center" method="get" action="/log">
                     <label for="inputClientID" class="form-label">your yes® Client ID</label>
-                    <input name="client_id" type="text" class="form-control text-center" id="inputClientID" pattern="sandbox\.yes\.com:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" aria-describedby="clientIDHelp" placeholder="sandbox.yes.com:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                        style="font-family: monospace;" value="{{ client_id or '' }}">
+                    <input name="client_id" type="text" class="form-control text-center font-monospace" id="inputClientID" pattern="sandbox\.yes\.com:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" aria-describedby="clientIDHelp" placeholder="sandbox.yes.com:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                        style="margin-left: auto; margin-right: auto; width: 40em;" value="{{ client_id or '' }}">
                     <div id="clientIDHelp" class="form-text {% if error %}text-warning{% endif %}">
                         {% if error == "invalid_client_id" %} The client ID entered is not valid. {% elif error == "invalid_client_id_format" %} The client ID entered does not have the right format. {% else %} If you don't have a client ID yet, <a href="https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html">follow this manual</a>.
                         {% endif %}

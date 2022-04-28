@@ -33,9 +33,8 @@ class RPTestResult:
 
 @dataclass
 class RPTestResultSet:
-    request_name: str
-    description: str
     test_results: List[RPTestResult]
+    test: "RPTestSet"
 
     # Timestamp is set when creating the object
     timestamp: datetime = field(default_factory=datetime.utcnow)
@@ -100,6 +99,7 @@ class RPTestSet:
 
     NAME: str
     DESCRIPTION: str
+    STARTS_NEW: bool = False
 
     # data is a dict holding data to be persisted between tests
     data: Dict
@@ -161,9 +161,8 @@ class RPTestSet:
 
         # Create RPTestResultSet
         return RPTestResultSet(
-            request_name=self.NAME,
-            description=self.DESCRIPTION,
             test_results=test_results,
+            test=self,
         )
 
     def _all_data_available(self, fn):

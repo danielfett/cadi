@@ -1,5 +1,6 @@
 import json
 import re
+import time
 
 import cherrypy
 from cadi.idp.ekyc import YES_CLAIMS, YES_VERIFIED_CLAIMS, ClaimsProvider
@@ -9,11 +10,14 @@ from cadi.rptests.token import TokenRequestTestSet
 from cadi.rptests.userinfo import UserinfoRequestTestSet
 from cadi.server.userinterface import TEST_RESULT_STATUS_MAPPING
 from furl import furl
+from jwcrypto.jwt import JWT
 
-from ..rptests.par import (PARRequestURIAuthorizationRequestTestSet,
-                           PushedAuthorizationRequestTestSet)
+from ..rptests.par import (
+    PARRequestURIAuthorizationRequestTestSet,
+    PushedAuthorizationRequestTestSet,
+)
 from ..rptests.traditional import TraditionalAuthorizationRequestTestSet
-from ..tools import CLIENT_ID_PATTERN, convert_to_jwks, insert_into_cache_list
+from ..tools import CLIENT_ID_PATTERN, json_handler, jwk_to_jwks
 
 
 class IDP:
@@ -26,19 +30,17 @@ class IDP:
         platform_api,
         cache,
         j2env,
-        server_certificate,
-        server_certificate_private_key,
+        server_jwk,
     ):
         self.platform_api = platform_api
         self.cache = cache
         self.j2env = j2env
-        self.server_certificate = server_certificate
-        self.server_certificate_private_key = server_certificate_private_key
         self.session_manager = SessionManager(cache)
         self.claims_provider = ClaimsProvider()
+        self.server_jwk = server_jwk
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_out(handler=json_handler)
     def par(self, *args, **kwargs):
         client_id = self._test_for_client_id(kwargs)
         test = PushedAuthorizationRequestTestSet(
@@ -52,6 +54,7 @@ class IDP:
         self._attach_test_results(client_id, test_results)
 
         if not "session" in test.data:
+            cherrypy.response.status = 400
             return {
                 "error": "server_error",
                 "error_description": "We were not able to complete your request. "
@@ -111,17 +114,29 @@ class IDP:
                 "No session with this sid exists for this client ID. Please start a new authorization session.",
             )
 
-        response_id_token_normal = self.claims_provider.process_ekyc_request(
-            user_id, session, "id_token", False
+        response_id_token_normal = json.dumps(
+            self.claims_provider.process_ekyc_request(
+                user_id, session, "id_token", False
+            ),
+            indent=2,
         )
-        response_id_token_minimal = self.claims_provider.process_ekyc_request(
-            user_id, session, "id_token", True
+        response_id_token_minimal = json.dumps(
+            self.claims_provider.process_ekyc_request(
+                user_id, session, "id_token", True
+            ),
+            indent=2,
         )
-        response_userinfo_normal = self.claims_provider.process_ekyc_request(
-            user_id, session, "userinfo", False
+        response_userinfo_normal = json.dumps(
+            self.claims_provider.process_ekyc_request(
+                user_id, session, "userinfo", False
+            ),
+            indent=2,
         )
-        response_userinfo_minimal = self.claims_provider.process_ekyc_request(
-            user_id, session, "userinfo", True
+        response_userinfo_minimal = json.dumps(
+            self.claims_provider.process_ekyc_request(
+                user_id, session, "userinfo", True
+            ),
+            indent=2,
         )
 
         # Render the auth_ep.html template
@@ -169,14 +184,14 @@ class IDP:
         redirect_uri = furl(session.redirect_uri)
         if session.state is not None:
             redirect_uri.args["state"] = session.state
-        redirect_uri.args["code"] = session.code
+        redirect_uri.args["code"] = session.authorization_code
         redirect_uri.args["iss"] = cherrypy.request.base + "/idp"
 
         # Redirect browser to redirect_uri
         raise cherrypy.HTTPRedirect(redirect_uri.url)
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_out(handler=json_handler)
     def token(self, *args, **kwargs):
         client_id = self._desperately_find_client_id(kwargs, cherrypy.request)
         if not client_id:
@@ -192,7 +207,11 @@ class IDP:
             expected_client_id=client_id,
         )
 
+        test_results = test.run()
+        self._attach_test_results(client_id, test_results)
+
         if not "session" in test.data:
+            cherrypy.response.status = 400
             return {
                 "error": "server_error",
                 "error_description": "We were unable to identify the session to which your request belongs. "
@@ -213,7 +232,7 @@ class IDP:
         }
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_out(handler=json_handler)
     def userinfo(self):
         authorization_header = cherrypy.request.headers.get("authorization", None)
 
@@ -247,23 +266,28 @@ class IDP:
             platform_api=self.platform_api,
             cache=self.cache,
             client_id=client_id,
+            request=cherrypy.request,
             session=session,
         )
 
-        test.run()
+        test_results = test.run()
+        self._attach_test_results(client_id, test_results)
 
         return session.userinfo_response_contents
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_out(handler=json_handler)
     def jwks(self):
         # JWKS Endpoint: Serve the server certificate
-        return convert_to_jwks(self.server_certificate)
+        return jwk_to_jwks(self.server_jwk)
 
     def _attach_test_results(self, client_id, test_results):
-        key = "test_results_" + client_id
-        insert_into_cache_list(
-            self.cache, key, test_results, self.MAX_TEST_RESULTS, self.TEST_RESULT_EXPIRATION
+        key = ("test_results", client_id)
+        self.cache.insert_into_list(
+            key,
+            test_results,
+            self.MAX_TEST_RESULTS,
+            self.TEST_RESULT_EXPIRATION,
         )
 
     def _desperately_find_client_id(self, parameters, request):
@@ -306,8 +330,28 @@ class IDP:
         return client_id
 
     def _create_id_token(self, session):
-        return session.id_token_response_contents
+        claims = session.id_token_response_contents
+        claims['iss'] = cherrypy.request.base + "/idp"
+        claims['aud'] = session.client_id
+        claims['iat'] = int(time.time())
+        claims['exp'] = int(time.time()) + 3600
+        claims['nonce'] = session.nonce
+        # TODO: test all these, including acr!
 
+        # Create a signed ID token using the server's private key
+        id_token = JWT(
+            header={"kid": "default", "alg": "RS256"},
+            claims=claims,
+            key=self.server_jwk,
+        )
+        id_token.make_signed_token(self.server_jwk)
+        return id_token.serialize()
+
+    @staticmethod
+    def json_error_page(status, message, traceback, version):
+        cherrypy.response.headers["Content-Type"] = "application/json"
+        return json.dumps({"error_description": f"Error while processing your message: '{message}'\n\n{traceback}", "error": "server_error"})
+  
 
 """
 Serve the OpenID Connect well-known file on the following web server URLs:
@@ -321,7 +365,7 @@ The contents are mostly a static configuration, but some paths depend on the web
 
 class WellKnown:
     @cherrypy.expose(alias=["openid_configuration", "oauth_configuration"])
-    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_out(handler=json_handler)
     def index(self):
         return {
             "issuer": f"{cherrypy.request.base}/idp",
@@ -361,7 +405,7 @@ class WellKnown:
                 "eID",
             ],
             "claim_types_supported": ["normal"],
-            "claims_supported": ["sub"] + YES_CLAIMS.keys(),
+            "claims_supported": ["sub"] + list(YES_CLAIMS.keys()),
             "claims_parameter_supported": True,
             "verified_claims_supported": True,
             "trust_frameworks_supported": ["de_aml"],
@@ -380,5 +424,5 @@ class WellKnown:
                 "de_replacement_idcard",
             ],
             "documents_methods_supported": ["pipp", "sripp"],
-            "claims_in_verified_claims_supported": YES_VERIFIED_CLAIMS.keys(),
+            "claims_in_verified_claims_supported": list(YES_VERIFIED_CLAIMS.keys()),
         }

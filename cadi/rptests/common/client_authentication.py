@@ -6,12 +6,12 @@ from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 
 
 class ClientAuthenticationTestSet(RPTestSet):
-    MTLS_HEADER = "x-yes-client-tls-certificate"
+    MTLS_HEADER = "X-ARR-ClientCert"
 
     client_certificate = None
     client_certificate_parsed = None
 
-    def t2000_client_certificate_present(self, request, **kwargs):
+    def t2000_client_certificate_present(self, request, **_):
         if (
             not self.MTLS_HEADER in request.headers
             or request.headers[self.MTLS_HEADER] == ""

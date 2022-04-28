@@ -52,7 +52,7 @@ class TokenRequestTestSet(
             output_data={"code": code},
         )
 
-    t3010_code_parameter.title = "Code parameter"
+    t3010_code_parameter.title = "Authorization code parameter"
 
     def t3011_session_exists_for_code(self, code, client_id, **_):
         session = self.session_manager.find(client_id, authorization_code=code)
@@ -73,11 +73,11 @@ class TokenRequestTestSet(
             "Please start a new authorization process to get a new code. ",
         )
 
-    t3011_session_exists_for_code.title = "Session exists for code parameter"
+    t3011_session_exists_for_code.title = "Session exists for authorization code parameter"
 
     def t3012_code_has_not_expired(self, session, **_):
         # Calculate how long ago the session was created
-        elapsed = (datetime.utcnow() - session.created_at).total_seconds()
+        elapsed = int((datetime.utcnow() - session.created_at).total_seconds())
 
         if elapsed > self.CODE_EXPIRE_FAILURE_AFTER:
             return RPTestResult(
@@ -101,7 +101,7 @@ class TokenRequestTestSet(
             f"The session was created {elapsed} seconds ago.",
         )
 
-    t3012_code_has_not_expired.title = "Code has not expired"
+    t3012_code_has_not_expired.title = "Authorization code has not expired"
 
     def t3013_code_has_not_been_used(self, session, **_):
         if session.used_code:
@@ -119,7 +119,7 @@ class TokenRequestTestSet(
             "This code has not been used before.",
         )
 
-    t3013_code_has_not_been_used.title = "Code has not been used before"
+    t3013_code_has_not_been_used.title = "Authorization code has not been used before"
 
     def t3020_redirect_uri_matches(self, session, payload, **_):
         if not "redirect_uri" in payload:

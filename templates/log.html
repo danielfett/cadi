@@ -1,18 +1,22 @@
 {% extends "_base.html" %} {% block header %}
-<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-white">
-    <a href="/" class="ms-3 mb-md-0 text-dark text-decoration-none fs-5">yes® CADI</a>
+<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-dark text-white">
+    <a href="/" class="ms-3 mb-md-0 text-decoration-none fs-3 text-white">yes® CADI</a>
     <div>
         <h1 class="fs-4 mb-0 text-center">
-            {{ client_config['client_name'] }} <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#clientDetails"><i class="bi bi-info-circle"></i></button>
+            {{ client_config['client_name'] }} <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#clientDetails"><i class="bi bi-info-circle"></i></button>
         </h1>
-        <code>{{ client_id }}</code>
+        <span class="font-monospace">{{ client_id }}</span>
     </div>
-    <ul class="nav nav-pills ma-3">
-        <li class="nav-item">
-            <a href="https://yes.com/docs/rp-devguide/latest/index.html" class="nav-link">Developer Guide</a>
-        </li>
+    <ul class="nav nav-pills ma-3 me-3">
+        <a href="javascript:window.location.reload()" class="btn btn-light"><i class="bi bi-arrow-counterclockwise fs-3"></i></a>
     </ul>
 </header>
+<script>
+    function showXandScrollToY(x, y) {
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById(x)).show();
+        window.setTimeout(function(){ window.location.href="#" + y}, 500);
+    }
+</script>
 {% endblock %} {% block body %}
 
 <body>
@@ -58,53 +62,66 @@
             </div>
         </div>
     </div>
+    
+    {% if len(test_results) == 0 %}
+    <div class="container-md mb-4 alert alert-info">
+        <span class="fs-5">
+            Nothing to show yet. Start a new authentication/authorization flow using this Issuer URL:<br>
+            <span class="font-monospace">{{ iss }}</span>
+        </span>
+    </div>
+    {% else %}
+    <div class="container-md mb-4 text-center text-muted">
+        <p>
+            Latest request shown on top. Reload to show new requests.
+        </p>
+    </div>
+    {% endif %}
     {% for tr in test_results %}
-    <div class="container-md mb-4">
-        <div class="card">
-            <div class="card-header d-flex flex-wrap justify-content-between">
-                <div><a href="#" data-toggle="collapse" data-target="#tr-{{id(tr)}}">{{ tr.request_name }}</a></div> <div class="text-muted">{{ tr.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</div>
+    <div class="container-md mb-4 border-start border-5 ">
+        
+           <!-- <h3 class="d-flex flex-wrap justify-content-between">
+                <div>{{ tr.request_name }}</div> <small class="text-muted">{{ tr.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</small>
+            </h3>
+            <a href="#" data-bs-toggle="collapse" data-bs-target="#tr-{{id(tr)}}" class="accordion-button">Show details</a>
+            -->
+            <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#tr-{{id(tr)}}">
+                <div >
+                    <small class="text-muted">{{ tr.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</small><br>
+                    <div class="fs-4">{{ tr.test.NAME }}</div> 
+                </div>
             </div>
             <div class="d-flex" style="height: 1ex;">
                 {% for result in tr.test_results %}
-                    <a href="#result-{{ id(result) }}" class="border border-white bg-{{ SM[result.result].color }} flex-fill"></a>
+                    <a href="#" onclick="showXandScrollToY('tr-{{ id(tr) }}', 'result-{{ id(result) }}')" class="border border-white bg-{{ SM[result.result].color }} flex-fill"></a>
                 {% endfor %}
             </div>
             <div id="tr-{{id(tr)}}" class="collapse">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs" id="req-{{ id(tr) }}" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <a data-toggle="tab" data-target="#req-{{ id(tr) }}-analysis" class="nav-link active" aria-current="true" href="#">Analysis</a>
-                        </li>
-                        {% for name, content in tr.get_collected_request_info().items() %}
-                        <li class="nav-item" role="presentation">
-                            <a data-toggle="tab" data-target="#req-{{ id(tr) }}-reqinfo-{{ id(name) }}" class="nav-link" href="#">{{ name }}</a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                <div class="container">
+                    <p class="card-text m-3">
+                        {{ tr.test.DESCRIPTION }}
+                    </p>
                 </div>
+                <ul class="nav nav-tabs" id="req-{{ id(tr) }}" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-analysis" class="nav-link active" aria-current="true" href="#">Analysis</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-service" class="nav-link" aria-current="true" href="#">Service Details</a>
+                    </li>
+                    {% for name, content in tr.get_collected_request_info().items() %}
+                    <li class="nav-item" role="presentation">
+                        <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-reqinfo-{{ id(name) }}" class="nav-link" href="#">{{ name }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
                 <div class="tab-content">
                     <div class="tab-pane fade show active card-body" id="req-{{ id(tr) }}-analysis">
-                        <!-- <h5 class="card-title">Special title treatment</h5> -->
-
-                        
-                        <p class="card-text">
-                            {{ tr.description }}
-                        </p>
-                        <h5>Service Details</h5>
-                        <table class="table table-striped table-bordered">
-                            {% for name, value in tr.get_collected_service_information().items() %}
-                            <tr>
-                                <th>{{ name }}</th>
-                                <td>{{ value }}</td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                        <h5>Test Results</h5>
                         <div class="accordion accordion-flush">
                             {% for result in tr.test_results %}
                             <div class="accordion-item" id="result-{{ id(result) }}">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-toggle="collapse" data-target="#result-details-{{ id(result) }}" aria-expanded="false" aria-controls="result-details-{{ id(result) }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#result-details-{{ id(result) }}" aria-expanded="false" aria-controls="result-details-{{ id(result) }}">
                                         <i class="bi bi-{{ SM[result.result].icon }} fs-3 text-{{ SM[result.result].color }} me-3" title="{{ SM[result.result].text }}"></i>
                                         {{ result.title}}
                                     </button>
@@ -134,6 +151,17 @@
                             {% endfor %}
                         </div>
                     </div>
+                    
+                    <div class="tab-pane fade hide card-body" id="req-{{ id(tr) }}-service">
+                        <table class="table table-striped table-bordered">
+                            {% for name, value in tr.get_collected_service_information().items() %}
+                            <tr>
+                                <th>{{ name }}</th>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>  
                     {% for name, content in tr.get_collected_request_info().items() %}
                     <div class="tab-pane fade card-body" id="req-{{ id(tr) }}-reqinfo-{{ id(name) }}">
                         <pre>{{ content }}</pre>
@@ -141,8 +169,22 @@
                     {% endfor %}
                 </div>
             </div>
-        </div>
+        <hr>
+        {% if tr.test.STARTS_NEW %}
+    </div>
+    <hr>
+    <div class="container-md mb-4 border-start border-5 ">
+        {% endif %}
     </div>
     {% endfor %}
+    <div class="container-md mb-4 text-center text-muted">
+        <div class="fs-5">
+            Issuer URL: 
+            <span class="font-monospace">{{ iss }}</span>
+        </div>
+            <p>
+                Conformance test, Acceptance test, and Debug IDP. <a href="https://yes.com/imprint">Imprint</a>. <a href="https://yes.com/privacy">Privacy Policy</a>. <a href="https://yes.com/docs/rp-devguide/latest/index.html">Developer Guide</a>.
+            </p>
+    </div>
 </body>
 {% endblock %}

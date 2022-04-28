@@ -2,9 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from cadi.tools import insert_into_cache_list, random_string_base64
-
-
+from cadi.tools import random_string_base64
 
 
 @dataclass
@@ -54,9 +52,8 @@ class SessionManager:
 
     def store(self, session: IDPSession):
         # Store the session in the list of sessions for the client_id in the cache
-        key = "sessions_" + session.client_id
-        insert_into_cache_list(
-            self.cache,
+        key = ("sessions", session.client_id)
+        self.cache.insert_into_list(
             key,
             session,
             self.MAX_OPEN_SESSIONS_PER_CLIENT,
@@ -65,12 +62,10 @@ class SessionManager:
         )
 
         # Store also a mapping from access tokens to client_ids
-        key = "at_to_client_" + session.access_token
-        insert_into_cache_list(
-            self.cache,
+        key = ("at_to_client", session.access_token)
+        self.cache.set(
             key,
             session.client_id,
-            self.MAX_OPEN_SESSIONS_PER_CLIENT,
             self.SESSION_EXPIRATION,
         )
 
@@ -83,7 +78,7 @@ class SessionManager:
         access_token=None,
     ):
         # Check if a session with this data exists for the given client_id
-        key = "sessions_" + client_id
+        key = ("sessions", client_id)
         the_list = self.cache.get(key, default=[])
 
         # Check if the session with the given sid exists in the list
@@ -101,7 +96,7 @@ class SessionManager:
         return None
 
     def find_by_access_token(self, access_token):
-        key = "at_to_client_" + access_token
+        key = ("at_to_client", access_token)
 
         client_id = self.cache.get(key)
 
