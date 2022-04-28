@@ -9,13 +9,15 @@ from yaml import SafeLoader, load
 from cadi.server.idp import IDP, WellKnown
 from cadi.server.userinterface import UserInterface
 
-from .platform_api import PlatformAPI
+from .platform_api import DummyAPI, PlatformAPI
 from .tools import create_new_jwk
 
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="CADI Server")
     parser.add_argument("platform_credentials_file", type=argparse.FileType("r"))
+    # When "--dummy-api" is provided, use DummyAPI instead of PlatformAPI
+    parser.add_argument("--dummy-api", action="store_true")
     args = parser.parse_args()
 
     # Prepare Memcache client
@@ -26,9 +28,13 @@ if __name__ == "__main__":
     server_jwk = create_new_jwk()
 
     # Prepare yes Platform API
-    platform_api = PlatformAPI(
-        **load(args.platform_credentials_file.read(), Loader=SafeLoader), cache=cache
-    )
+    if not args.dummy_api:
+        platform_api = PlatformAPI(
+            **load(args.platform_credentials_file.read(), Loader=SafeLoader),
+            cache=cache
+        )
+    else:
+        platform_api = DummyAPI()
 
     # Prepare Jinja2 Template Engine
     TEMPLATE_PATH = os.path.abspath(os.path.dirname(__file__)) + "/../templates"
@@ -64,9 +70,10 @@ if __name__ == "__main__":
             server_jwk=server_jwk,
         ),
         "/idp",
-        config={"/": {"error_page.default": STATIC_PATH + "/error.html"},
-        "/token": {"error_page.default": IDP.json_error_page},
-        "/par": {"error_page.default": IDP.json_error_page},
+        config={
+            "/": {"error_page.default": STATIC_PATH + "/error.html"},
+            "/token": {"error_page.default": IDP.json_error_page},
+            "/par": {"error_page.default": IDP.json_error_page},
         },
     )
 
@@ -75,7 +82,8 @@ if __name__ == "__main__":
         "/idp/.well-known",
     )
 
-    cherrypy.server.socket_host = '0.0.0.0'
+    cherrypy.server.socket_host = "0.0.0.0"
+    cherrypy.server.socket_port = 8000
 
     cherrypy.engine.start()
     cherrypy.engine.block()
