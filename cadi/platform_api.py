@@ -80,5 +80,9 @@ class PlatformAPI:
                 client_config,
                 expire=self.EXPIRE_CLIENT_CONFIG,
             )
-
+        print (repr(client_config))
         return client_config
+
+class DummyAPI:
+    def get_client_config_with_cache(self, client_id):
+        ....
