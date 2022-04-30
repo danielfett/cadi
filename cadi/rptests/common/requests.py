@@ -1,5 +1,4 @@
 from urllib.parse import parse_qs
-import cherrypy 
 
 from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 
@@ -14,24 +13,24 @@ def dump_cherrypy_request_headers(request):
 class POSTRequestTestSet(RPTestSet):
     def t0000_is_post_request(self, request, **_):
 
-        request_info = {"Request Headers": dump_cherrypy_request_headers(request)}
+        request_info = {"Request Headers": self._code(dump_cherrypy_request_headers(request))}
         # request is a cherrypy.request object
         if request.method != "POST":
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                "The request method is not POST. This endpoint only accepts POST requests.",
+                "The request method is not POST. This endpoint must be accessed using a POST request.",
                 skip_all_further_tests=True,
                 request_info=request_info,
             )
         else:
-            request_info["Request Body"] = request.body.read()
+            request_info["Request Body"] = self._code(request.body.read().decode("utf-8", errors="replace"))
             return RPTestResult(
                 RPTestResultStatus.SUCCESS,
                 "The request method is POST.",
                 request_info=request_info,
             )
 
-    t0000_is_post_request.title = "Request method"
+    t0000_is_post_request.title = "Request method is POST?"
 
     def t0001_mime_type_is_form_encoded(self, request, **_):
         # request is a cherrypy.request object
@@ -44,17 +43,17 @@ class POSTRequestTestSet(RPTestSet):
         if request.headers["Content-Type"] != "application/x-www-form-urlencoded":
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"The Content-Type header is not application/x-www-form-urlencoded, but '{request.headers['Content-Type']}'. "
-                "This endpoint only accepts application/x-www-form-urlencoded requests. "
-                "If you're using form encoding already, you might need to set the 'Content-Type' header to the correct value.",
+                f"The Content-Type header is not `application/x-www-form-urlencoded`, but `{request.headers['Content-Type']}`. "
+                "This endpoint only accepts `application/x-www-form-urlencoded` requests. "
+                "If you're using form encoding already, you might need to set the `Content-Type` header to the correct value.",
             )
         else:
             return RPTestResult(
                 RPTestResultStatus.SUCCESS,
-                "The Content-Type header is application/x-www-form-urlencoded.",
+                "The Content-Type header is `application/x-www-form-urlencoded`.",
             )
 
-    t0001_mime_type_is_form_encoded.title = "Content-Type header"
+    t0001_mime_type_is_form_encoded.title = "Content-Type header correct?"
 
     def t0002_body_encoded_correctly(self, request, **_):
         ## ensure that in the parsed dict, each field only contains one value
@@ -77,7 +76,7 @@ class POSTRequestTestSet(RPTestSet):
             output_data={"payload": request.body_params},
         )
 
-    t0002_body_encoded_correctly.title = "Request body"
+    t0002_body_encoded_correctly.title = "Request body encoded properly?"
     t0002_body_encoded_correctly.references = [
         ("RFC6749 - OAuth 2.0, Appendix B", "https://www.rfc-editor.org/rfc/rfc6749#appendix-B"),
     ]
@@ -94,16 +93,16 @@ class POSTRequestTestSet(RPTestSet):
                 "The request does not contain a query string.",
             )
 
-    t0003_no_parameters_in_query_string.title = "Query string"
+    t0003_no_parameters_in_query_string.title = "No query string in POST request?"
 
 class GETRequestTestSet(RPTestSet):
     def t0000_is_get_request(self, request, **_):
-        request_info = {"Request Headers": dump_cherrypy_request_headers(request)}
+        request_info = {"Request Headers": self._code(dump_cherrypy_request_headers(request))}
         # request is a cherrypy.request object
         if request.method != "GET":
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"The request method is not GET, but '{request.method}'. This endpoint only accepts GET requests.",
+                f"The request method is not GET, but `{request.method}`. This endpoint only accepts GET requests.",
                 skip_all_further_tests=True,
                 request_info=request_info,
             )
@@ -114,7 +113,7 @@ class GETRequestTestSet(RPTestSet):
                 request_info=request_info,
             )
 
-    t0000_is_get_request.title = "Request Method"
+    t0000_is_get_request.title = "Request method is GET?"
 
     def t0010_request_url_assembled_correctly(self, request, **_):
         # request is a cherrypy.request object
@@ -123,7 +122,7 @@ class GETRequestTestSet(RPTestSet):
         if "?" in request.query_string:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part '{request.query_string}' must not contain a question mark.",
+                f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part `{request.query_string}` must not contain a question mark.",
             )
 
         if request.query_string == "":
@@ -139,7 +138,7 @@ class GETRequestTestSet(RPTestSet):
         except Exception as e:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part '{request.query_string}' must be a valid form-encoded URL.",
+                f"The request URL does not seem to be formatted correctly. This endpoint only accepts properly encoded URLs. The part `{request.query_string}` must be a valid form-encoded URL.",
                 extra_details=str(e),
             )
 
@@ -148,7 +147,7 @@ class GETRequestTestSet(RPTestSet):
             if len(value) != 1:
                 return RPTestResult(
                     RPTestResultStatus.FAILURE,
-                    f"Each parameter must only be sent once. The parameter '{key}' is sent {len(value)} times.",
+                    f"Each parameter must only be sent once. The parameter `{key}` is sent {len(value)} times.",
                 )
 
         # use the first instance of each parameter in the output payload dict
@@ -163,4 +162,4 @@ class GETRequestTestSet(RPTestSet):
             output_data={"payload": payload},
         )
 
-    t0010_request_url_assembled_correctly.title = "Request URL"
+    t0010_request_url_assembled_correctly.title = "Request URL encoded properly?"

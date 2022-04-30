@@ -182,5 +182,17 @@ class RPTestSet:
                 return False
         return True
 
-    def prepare(self, **kwargs):
-        pass
+    @staticmethod
+    def _code(text):
+        return "```\n" + text + "\n```"
+
+    @staticmethod
+    def _list_parameters(params):
+        return "\n" + "".join(f"\n  * `{p}`" for p in params) + "\n\n"
+
+    @staticmethod
+    def _list(things, enumerated=False):
+        if enumerated:
+            return "\n" + "".join(f"\n 1. {t}" for t in things) + "\n\n"
+        else:
+            return "\n" + "".join(f"\n * {t}" for t in things) + "\n\n"

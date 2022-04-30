@@ -7,5 +7,6 @@ class UserinfoRequestTestSet(
     GETRequestTestSet,
     ClientAuthenticationTestSet,
 ):
-    NAME = "OpenID Connect Userinfo Request"
+    NUMBER = "3"
+    NAME = "Userinfo Request"
     DESCRIPTION = "Userinfo Request as defined in OpenID Connect Core."

@@ -262,12 +262,15 @@ class IDP:
 
         client_id = session.client_id
 
+        client_config = self.platform_api.get_client_config_with_cache(client_id)
+
         test = UserinfoRequestTestSet(
             platform_api=self.platform_api,
             cache=self.cache,
             client_id=client_id,
             request=cherrypy.request,
             session=session,
+            client_config=client_config,
         )
 
         test_results = test.run()

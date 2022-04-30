@@ -10,7 +10,7 @@ from cadi.server.idp import IDP, WellKnown
 from cadi.server.userinterface import UserInterface
 
 from .platform_api import DummyAPI, PlatformAPI
-from .tools import create_new_jwk
+from .tools import create_new_jwk, jinja2_markdown, jinja2_markdown_inline
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -42,6 +42,8 @@ if __name__ == "__main__":
         loader=jinja2.FileSystemLoader(TEMPLATE_PATH),
         autoescape=True,
     )
+    jinja2_env.filters["md"] = jinja2_markdown
+    jinja2_env.filters["md_inline"] = jinja2_markdown_inline
 
     # Start CherryPy server
     STATIC_PATH = os.path.abspath(os.path.dirname(__file__)) + "/../static"

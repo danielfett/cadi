@@ -13,15 +13,17 @@ class PushedAuthorizationRequestTestSet(
     ClientIDTestSet,
     ClientAuthenticationTestSet,
 ):
-    NAME = "Pushed Authorization Request (RFC9126)"
+    NUMBER = "1a"
+    NAME = "Pushed Authorization Request"
     DESCRIPTION = "Backend Pushed Authorization Request as defined in RFC9126."
 
     STARTS_NEW = True
 
 
 class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSet):
-    NAME = "Authorization Request following Pushed Authorization Request"
-    DESCRIPTION = "Authorization Request after PAR."
+    NUMBER = "1b"
+    NAME = "Authorization Request with `request_uri`"
+    DESCRIPTION = "Authorization Request after a Pushed Authorization Request."
 
     REQUEST_URI_EXPIRE_WARNING_AFTER = 30  # seconds
     REQUEST_URI_EXPIRE_FAILURE_AFTER = 180  # seconds
@@ -48,16 +50,16 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         if not "request_uri" in payload:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                "The request does not contain a 'request_uri' parameter.",
+                "The request does not contain a `request_uri` parameter.",
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
-            "The request contains a 'request_uri' parameter.",
+            "The request contains a `request_uri` parameter.",
             output_data={"request_uri": payload["request_uri"]},
         )
 
-    t0010_has_request_uri_parameter.title = "Request URI parameter"
+    t0010_has_request_uri_parameter.title = "Request URI parameter present?"
     t0010_has_request_uri_parameter.references = [
         (
             "RFC9126 - Pushed Authorization Requests, Section 2.1",
@@ -80,8 +82,9 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         if not_permitted_parameters:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"The request contains the following parameters that should not be used after a Pushed Authorization Request: {', '.join(not_permitted_parameters)}. "
-                "Please take care to pass on all parameters in the Pushed Authorization Request and only include request_uri and client_id in the traditional authorization request.",
+                "The request contains the following parameters that should not be used after a Pushed Authorization Request:"
+                + self._list_parameters(not_permitted_parameters)
+                + "Please take care to pass on all parameters in the Pushed Authorization Request and only include `request_uri` and `client_id` in the front-end authorization request.",
             )
 
         unknown_parameters = request_parameters - self.PERMITTED_PARAMETERS
@@ -89,16 +92,17 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         if unknown_parameters:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
-                f"The request contains the following unknown parameters: {', '.join(unknown_parameters)}. "
-                "Please take care to pass on all parameters in the Pushed Authorization Request and only include request_uri and client_id in the traditional authorization request.",
+                f"The request contains the following unknown parameters: "
+                + self._list_parameters(unknown_parameters)
+                + "Please take care to pass on all parameters in the Pushed Authorization Request and only include `request_uri` and `client_id` in the front-end authorization request.",
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
-            "The request contains only the parameters 'request_uri' and 'client_id'.",
+            "The request contains only the parameters `request_uri` and `client_id`.",
         )
 
-    t0020_no_extra_parameters.title = "No extra parameters"
+    t0020_no_extra_parameters.title = "No extra parameters in URL?"
     t0020_no_extra_parameters.references = [
         (
             "RFC9126 - Pushed Authorization Requests, Section 4",
@@ -115,32 +119,34 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         if session:
             return RPTestResult(
                 RPTestResultStatus.SUCCESS,
-                f"The request contains a 'request_uri' parameter with the value '{request_uri}', for which there exists a session. ",
+                f"The request contains a `request_uri` parameter with the value `{request_uri}`, for which there exists a session. ",
                 output_data={"session": session},
             )
 
         return RPTestResult(
             RPTestResultStatus.FAILURE,
-            f"The request contains a 'request_uri' parameter with the value '{request_uri}' which we do not recognize. "
-            "Please check the following things: "
-            "(1) That the request_uri value was used exactly as provided in the response to the Pushed Authorization Request. "
-            "(2) That the request_uri was used immediately after it was issued. If you waited a long time before using the request_uri, or used an old request_uri value, the request_uri may have expired. "
-            "(3) That you used the same client_id in the Pushed Authorization Request and in the current request."
-            "Please start a new Pushed Authorization Request to get a new request_uri. ",
+            f"The request contains a `request_uri` parameter with the value `{request_uri}`, which we do not recognize. "
+            + "Please check the following things: \n\n"
+            " 1. That the request_uri value was used exactly as provided in the response to the Pushed Authorization Request.  \n"
+            " 1. That the request_uri was used immediately after it was issued. If you waited a long time before using the request_uri, or used an old request_uri value, the request_uri may have expired.  \n"
+            " 1. That you used the same client_id in the Pushed Authorization Request and in the current request. \n"
+            "\nPlease start a new Pushed Authorization Request to get a new request_uri. ",
         )
 
-    t0030_request_uri_parameter_is_valid.title = "Provided request_uri is valid"
+    t0030_request_uri_parameter_is_valid.title = (
+        "Provided Request URI parameter is valid?"
+    )
 
     def t0040_request_uri_has_not_expired(self, session, **_):
         # Calculate how long ago the session was created
-        elapsed = (datetime.utcnow() - session.created_at).total_seconds()
+        elapsed = int((datetime.utcnow() - session.created_at).total_seconds())
 
         if elapsed > self.REQUEST_URI_EXPIRE_FAILURE_AFTER:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 f"The request_uri has expired. "
                 f"The session was created {elapsed} seconds ago. "
-                "The request_uri should be used immediately after it was issued.",
+                "The `request_uri` should be used immediately after it was issued.",
             )
 
         if elapsed > self.REQUEST_URI_EXPIRE_WARNING_AFTER:
@@ -148,23 +154,23 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
                 RPTestResultStatus.WARNING,
                 f"The request_uri may have expired in practice. "
                 f"The session was created {elapsed} seconds ago. "
-                "The request_uri should be used immediately after it was issued.",
+                "The `request_uri` should be used immediately after it was issued.",
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
-            f"The request_uri has not expired. "
+            f"The `request_uri` has not expired. "
             f"The session was created {elapsed} seconds ago.",
         )
 
-    t0040_request_uri_has_not_expired.title = "Provided request_uri has not expired"
+    t0040_request_uri_has_not_expired.title = "Provided Request URI has not expired?"
 
     def t0050_request_uri_has_not_been_used(self, session, **_):
         if session.used_request_uri:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
-                "This request_uri has been used before. This will not work with real IDPs. "
-                "request_uri values can only be used once.",
+                "This `request_uri` has been used before. This will not work with real IDPs. "
+                "`request_uri` values can only be used once.",
             )
 
         session.used_request_uri = True
@@ -172,9 +178,9 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
-            "This request_uri has not been used before.",
+            "This `request_uri` has not been used before.",
         )
 
     t0050_request_uri_has_not_been_used.title = (
-        "Provided request_uri has not been used before"
+        "Provided Request URI has not been used before?"
     )

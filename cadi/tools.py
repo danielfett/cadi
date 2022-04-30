@@ -1,10 +1,17 @@
+from base64 import urlsafe_b64encode
+from hashlib import sha256
 import cherrypy
 import json
 import random
-from cryptography.hazmat.primitives.serialization import Encoding
 from jwcrypto.jwk import JWK
 import string
 import os
+
+import markdown2
+import bleach
+from markupsafe import Markup
+
+from copy import copy
 
 
 CLIENT_ID_PATTERN = (
@@ -13,7 +20,7 @@ CLIENT_ID_PATTERN = (
 
 
 def get_base_url():
-    if (hostname := os.environ.get("WEBSITE_HOSTNAME", None)):
+    if hostname := os.environ.get("WEBSITE_HOSTNAME", None):
         return "https://" + hostname
     return os.environ.get("CADI_BASE_URL", cherrypy.request.base)
 
@@ -39,3 +46,45 @@ def jwk_to_jwks(jwk):
     # Create a JWKS from the public key, including the x5c property
     jwks = {"keys": [jwk_dict]}
     return jwks
+
+
+def calculate_pkce_challenge_from_verifier(code_verifier):
+    # Given a PKCE code_verifier, calculate the code_challenge according to RFC7636.
+    # code_verifier string of random characters.
+
+    return (
+        urlsafe_b64encode(sha256(code_verifier.encode("utf-8")).digest())
+        .decode("utf-8")
+        .replace("=", "")
+    )
+
+
+normal_tags = [
+    "a",
+    "strong",
+    "em",
+    "p",
+    "ul",
+    "ol",
+    "li",
+    "br",
+    "sub",
+    "sup",
+    "hr",
+    "code",
+    "tt",
+]
+
+inline_tags = ["strong", "em", "code"]
+
+
+def jinja2_markdown(text):
+    html = markdown2.markdown(text, safe_mode=True)
+    result = bleach.clean(html, tags=normal_tags, strip=True)
+    return Markup(result)
+
+
+def jinja2_markdown_inline(text):
+    html = markdown2.markdown(text, safe_mode=True)
+    result = bleach.clean(html, tags=inline_tags, strip=True)
+    return Markup(result)

@@ -17,6 +17,11 @@
         window.setTimeout(function(){ window.location.href="#" + y}, 500);
     }
 </script>
+<style>
+    code {
+        white-space: pre;
+    }
+</style>
 {% endblock %} {% block body %}
 
 <body>
@@ -86,9 +91,10 @@
             <a href="#" data-bs-toggle="collapse" data-bs-target="#tr-{{id(tr)}}" class="accordion-button">Show details</a>
             -->
             <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#tr-{{id(tr)}}">
+                <div class="fs-1 me-3">{{ tr.test.NUMBER }}</div>
                 <div >
                     <small class="text-muted">{{ tr.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</small><br>
-                    <div class="fs-4">{{ tr.test.NAME }}</div> 
+                    <div class="fs-4">{{ tr.test.NAME|md_inline }}</div> 
                 </div>
             </div>
             <div class="d-flex" style="height: 1ex;">
@@ -99,7 +105,7 @@
             <div id="tr-{{id(tr)}}" class="collapse">
                 <div class="container">
                     <p class="card-text m-3">
-                        {{ tr.test.DESCRIPTION }}
+                        {{ tr.test.DESCRIPTION|md }}
                     </p>
                 </div>
                 <ul class="nav nav-tabs" id="req-{{ id(tr) }}" role="tablist">
@@ -111,7 +117,7 @@
                     </li>
                     {% for name, content in tr.get_collected_request_info().items() %}
                     <li class="nav-item" role="presentation">
-                        <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-reqinfo-{{ id(name) }}" class="nav-link" href="#">{{ name }}</a>
+                        <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-reqinfo-{{ id(name) }}" class="nav-link" href="#">{{ name|md_inline }}</a>
                     </li>
                     {% endfor %}
                 </ul>
@@ -123,15 +129,15 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#result-details-{{ id(result) }}" aria-expanded="false" aria-controls="result-details-{{ id(result) }}">
                                         <i class="bi bi-{{ SM[result.result].icon }} fs-3 text-{{ SM[result.result].color }} me-3" title="{{ SM[result.result].text }}"></i>
-                                        {{ result.title}}
+                                        {{ result.title|md_inline }}
                                     </button>
                                 </h2>
                                 <div id="result-details-{{ id(result) }}" class="accordion-collapse collapse {% if result.result in [Status.WARNING, Status.FAILURE] %}show{% endif %}">
                                     <div class="accordion-body">
-                                        {{ result.text }}
+                                        {{ result.text|md }}
                                         {% if result.extra_details %}
                                         <hr>
-                                        <pre>{{ result.extra_details }}</pre>
+                                        {{ result.extra_details|md }}
                                         {% endif %}
                                         {% if result.references %}
                                         <hr>
@@ -139,7 +145,7 @@
                                         <ul>
                                             {% for title, url in result.references %}
                                             <li>
-                                                <a href="{{ url }}" target="_blank">{{ title }}</a>
+                                                <a href="{{ url }}" target="_blank">{{ title|md_inline }}</a>
                                             </li>
                                             {% endfor %}
                                         </ul>
@@ -161,10 +167,11 @@
                             </tr>
                             {% endfor %}
                         </table>
-                    </div>  
+                    </div> 
+
                     {% for name, content in tr.get_collected_request_info().items() %}
                     <div class="tab-pane fade card-body" id="req-{{ id(tr) }}-reqinfo-{{ id(name) }}">
-                        <pre>{{ content }}</pre>
+                        {{ content|md }}
                     </div>
                     {% endfor %}
                 </div>
