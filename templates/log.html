@@ -1,16 +1,11 @@
-{% extends "_base.html" %} {% block header %}
-<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-dark text-white">
-    <a href="/" class="ms-3 mb-md-0 text-decoration-none fs-3 text-white">yes® CADI</a>
-    <div>
+{% extends "_base.html" %} {% block header_center %}
+<div>
         <h1 class="fs-4 mb-0 text-center">
             {{ client_config['client_name'] }} <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#clientDetails"><i class="bi bi-info-circle"></i></button>
         </h1>
         <span class="font-monospace">{{ client_id }}</span>
     </div>
-    <ul class="nav nav-pills ma-3 me-3">
-        <a href="javascript:window.location.reload()" class="btn btn-light"><i class="bi bi-arrow-counterclockwise fs-3"></i></a>
-    </ul>
-</header>
+    {% endblock %} {% block head_scripts %}
 <script>
     function showXandScrollToY(x, y) {
         bootstrap.Collapse.getOrCreateInstance(document.getElementById(x)).show();
@@ -78,7 +73,7 @@
     {% else %}
     <div class="container-md mb-4 text-center text-muted">
         <p>
-            Latest request shown on top. Reload to show new requests.
+            Latest request shown on top. <a href="javascript:window.location.reload()">Reload</a> to show new requests.
         </p>
     </div>
     {% endif %}
@@ -112,9 +107,11 @@
                     <li class="nav-item" role="presentation">
                         <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-analysis" class="nav-link active" aria-current="true" href="#">Analysis</a>
                     </li>
+                    {% if len(tr.get_collected_service_information()) > 0 %}
                     <li class="nav-item" role="presentation">
                         <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-service" class="nav-link" aria-current="true" href="#">Service Details</a>
                     </li>
+                    {% endif %}
                     {% for name, content in tr.get_collected_request_info().items() %}
                     <li class="nav-item" role="presentation">
                         <a data-bs-toggle="tab" data-bs-target="#req-{{ id(tr) }}-reqinfo-{{ id(name) }}" class="nav-link" href="#">{{ name|md_inline }}</a>
@@ -132,7 +129,7 @@
                                         {{ result.title|md_inline }}
                                     </button>
                                 </h2>
-                                <div id="result-details-{{ id(result) }}" class="accordion-collapse collapse {% if result.result in [Status.WARNING, Status.FAILURE] %}show{% endif %}">
+                                <div id="result-details-{{ id(result) }}" class="accordion-collapse collapse {% if result.result in [Status.WARNING, Status.FAILURE] %}show{% endif %} border border-{{ SM[result.result].color }}">
                                     <div class="accordion-body">
                                         {{ result.text|md }}
                                         {% if result.extra_details %}
@@ -170,7 +167,7 @@
                     </div> 
 
                     {% for name, content in tr.get_collected_request_info().items() %}
-                    <div class="tab-pane fade card-body" id="req-{{ id(tr) }}-reqinfo-{{ id(name) }}">
+                    <div class="tab-pane fade card-body" id="req-{{ id(tr) }}-reqinfo-{{ id(name) }}" style="overflow-x: scroll;">
                         {{ content|md }}
                     </div>
                     {% endfor %}

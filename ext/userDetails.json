@@ -1,219 +1,1825 @@
 [
-  {
-    "user_id": "6b8520c9-6824-45de-9ce9-da5373d964d8",
-    "nickname": "Test User",
-    "email": "test@platform.yes.com",
-    "email_verified": false,
-    "phone_number": "+12025550136",
-    "phone_number_verified": false,
-    "given_name": "Andreas",
-    "family_name": "Wagner",
-    "gender": "Xumgender",
-    "https://www.yes.com/claims/title": "Prof. Dr. Dr.",
-    "birthdate": "1969-11-21",
-    "https://www.yes.com/claims/nationality": "DE",
-    "https://www.yes.com/claims/place_of_birth": {
-      "country": "US",
-      "locality": "Raccoon City"
+    {
+        "user_id": "f647f683-e46d-43bd-bc76-526d93429b86",
+        "nickname": "test001",
+        "email": "test001@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+49301111001",
+        "phone_number_verified": true,
+        "given_name": "Given001",
+        "family_name": "Family001",
+        "gender": "male",
+        "birthdate": "1950-01-01",
+        "address": {
+            "formatted": "Street1 1\nBerlin\n10243\nDE",
+            "street_address": "Street1 1",
+            "locality": "Berlin",
+            "region": "Berlin",
+            "postal_code": "10243",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "1121081508150",
+        "https://www.yes.com/claims/preferred_iban": "DE72100500000000000019",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/title": "Dr.",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "yes Test Bank",
+            "date": "2019-01-02",
+            "id": "7df98de2-8834-48fb-b817-ee087cad8497",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "BA MITTE BÜA 1",
+                "number": "L3FY80139",
+                "date_of_issuance": "2018-01-02",
+                "date_of_expiry": "2028-01-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB08154711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2012-04-23T18:25:43.511+01",
+                "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2012-04-23T18:00:43.511+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA MITTE BÜA 1",
+                                "country": "DE"
+                            },
+                            "number": "L3FY80139",
+                            "date_of_issuance": "2018-01-02",
+                            "date_of_expiry": "2028-01-02"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "trust_framework": "de_aml",
+                "time": "2012-04-23T18:25:43.511+01",
+                "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2012-04-23T18:00:43.511+01",
+                        "document": {
+                            "type": "passport",
+                            "issuer": {
+                                "name": "Stadt Köln",
+                                "country": "DE"
+                            },
+                            "number": "K22000129",
+                            "date_of_issuance": "2010-11-01",
+                            "date_of_expiry": "2030-10-31"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family001",
+        "birth_middle_name": "Middle001",
+        "birth_given_name": "Given001",
+        "salutation": "Herr",
+        "title": "Dr.",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000000019",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "200",
+                "transaction_limit": "150",
+                "transaction_requires_second_factor": "true"
+            },
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000000919",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "200",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            },
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000009919",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "100",
+                "transaction_limit": "150",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "https://www.yes.com/claims/tax_id": "01072495633",
-    "https://www.yes.com/claims/preferred_iban": "DE12500105170648489890",
-    "consented": false
-  },
-  {
-    "user_id": "4e3ea9f5-2895-42c1-aa8a-9b5b726c708f",
-    "nickname": "Hans",
-    "email": "hans@platform.yes.com",
-    "email_verified": true,
-    "phone_number": "+12025550163",
-    "phone_number_verified": false,
-    "given_name": "Hans",
-    "family_name": "Hermann",
-    "gender": "male",
-    "https://www.yes.com/claims/salutation": "Herr",
-    "https://www.yes.com/claims/title": "Dr.",
-    "https://www.yes.com/claims/place_of_birth": {
-      "country": "DE",
-      "locality": "Rösrath"
+    {
+        "user_id": "f647f683-e46d-43bd-bc76-526d93429b87",
+        "nickname": "test001_consented",
+        "email": "test001@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+49301111001",
+        "phone_number_verified": true,
+        "given_name": "Given001",
+        "family_name": "Family001",
+        "gender": "male",
+        "birthdate": "1950-01-01",
+        "address": {
+            "formatted": "Street1 1\nBerlin\n10243\nDE",
+            "street_address": "Street1 1",
+            "locality": "Berlin",
+            "region": "Berlin",
+            "postal_code": "10243",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "1121081508150",
+        "https://www.yes.com/claims/preferred_iban": "DE72100500000000000019",
+        "consented": true,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/title": "Dr.",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "yes Test Bank",
+            "date": "2019-01-02",
+            "id": "7df98de2-8834-48fb-b817-ee087cad8497",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "BA MITTE BÜA 1",
+                "number": "L3FY80139",
+                "date_of_issuance": "2018-01-02",
+                "date_of_expiry": "2028-01-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB08154711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2012-04-23T18:25:43.511+01",
+                "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2012-04-23T18:00:43.511+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA MITTE BÜA 1",
+                                "country": "DE"
+                            },
+                            "number": "L3FY80139",
+                            "date_of_issuance": "2018-01-02",
+                            "date_of_expiry": "2028-01-02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family001",
+        "birth_middle_name": "Middle001",
+        "birth_given_name": "Given001",
+        "salutation": "Herr",
+        "title": "Dr.",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000000019",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            },
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000000919",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            },
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000009919",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "birthdate": "1985-12-06",
-    "https://www.yes.com/claims/nationality": "DE",
-    "address": {
-      "formatted": "Lüghauser Str. 16\nRösrath\nNRW\n51503\nDE",
-      "street_address": "Lüghauser Str. 16",
-      "locality": "Rösrath",
-      "region": "NRW",
-      "postal_code": "51503",
-      "country": "DE"
+    {
+        "user_id": "609c541e-f1ed-4c48-8864-244ac912e86a",
+        "nickname": "test002",
+        "email": "test002@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+491722222002",
+        "phone_number_verified": true,
+        "given_name": "Given002",
+        "family_name": "Family002",
+        "gender": "female",
+        "birthdate": "1955-02-02",
+        "address": {
+            "formatted": "Street2 2\nWien\n1050\nAT",
+            "street_address": "Street2 2",
+            "locality": "Wien",
+            "postal_code": "1050",
+            "country": "AT"
+        },
+        "https://www.yes.com/claims/preferred_iban": "DE78701500000000000026",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "AT",
+            "locality": "Wien"
+        },
+        "https://www.yes.com/claims/nationality": "AT",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "yes Test Bank",
+            "date": "2018-11-02",
+            "id": "yes18110245789",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "AT",
+                "type": "Passport",
+                "issuer": "Stadt Wien",
+                "number": "1234567",
+                "date_of_issuance": "2014-02-02",
+                "date_of_expiry": "2029-02-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "ytba4711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2018-11-02T06:16:32.258+01",
+                "verification_process": "yes18110245789",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "document": {
+                            "type": "passport",
+                            "issuer": {
+                                "name": "Stadt Wien",
+                                "country": "AT"
+                            },
+                            "number": "1234567",
+                            "date_of_issuance": "2014-02-02",
+                            "date_of_expiry": "2029-02-02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family002",
+        "birth_middle_name": "Middle002",
+        "birth_given_name": "Given002",
+        "salutation": "Frau",
+        "title": "Dr.",
+        "place_of_birth": {
+            "country": "AT",
+            "locality": "Wien"
+        },
+        "nationalities": [
+            "AT"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE78701500000000000026",
+                "account_holder_name": "Given002 Family002",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "verification": {
-      "organization": "Bank Y",
-      "date": "2013-02-21",
-      "id": "676q3636461467647q8498785747q487",
-      "method": "eID",
-      "eID": {
-        "country": "DE",
-        "type": "ID Card",
-        "identifier": "DE1234567890"
-      }
+    {
+        "user_id": "524aeddd-7922-4c36-b496-217f32c45a14",
+        "nickname": "test006",
+        "email": "test006@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+491766666006",
+        "phone_number_verified": true,
+        "given_name": "Given006",
+        "family_name": "Family006",
+        "gender": "male",
+        "birthdate": "1975-06-06",
+        "address": {
+            "formatted": "Street6 6\nKöln\nNRW\n51105\nDE",
+            "street_address": "Street6 6",
+            "locality": "Köln",
+            "region": "NRW",
+            "postal_code": "51105",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "5133081508159",
+        "https://www.yes.com/claims/preferred_iban": "DE30370502990000000067",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Köln"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Video Ident Solutions",
+            "date": "2019-01-02",
+            "id": "vidasdfjklsdf",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "Stadt Köln",
+                "number": "L75777755",
+                "date_of_issuance": "2016-06-07",
+                "date_of_expiry": "2026-06-06",
+                "method": "Supervised remote In-Person Proofing",
+                "agent": "va-3434-34334"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2019-01-02T06:06:06.060+01",
+                "verification_process": "vidasdfjklsdf",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "sripp",
+                        "time": "2019-01-02T06:00:06.060+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "Stadt Köln",
+                                "country": "DE"
+                            },
+                            "number": "L75777755",
+                            "date_of_issuance": "2016-06-07",
+                            "date_of_expiry": "2026-06-06"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family006",
+        "birth_middle_name": "Middle006",
+        "birth_given_name": "Given006",
+        "salutation": "Herr",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Köln"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE30370502990000000067",
+                "account_holder_name": "Given006 Family006",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "https://www.yes.com/claims/tax_id": "02138097565",
-    "https://www.yes.com/claims/preferred_iban": "DE91100000000123456789",
-    "consented": false
-  },
-  {
-    "user_id": "8b9f9588-4ad1-4069-9c66-7231f79d41c0",
-    "nickname": "Peter",
-    "email": "peter@platform.yes.com",
-    "email_verified": true,
-    "phone_number": "+12025550143",
-    "phone_number_verified": true,
-    "given_name": "Peter",
-    "family_name": "Gottschalk",
-    "gender": "male",
-    "https://www.yes.com/claims/salutation": "Herr",
-    "birthdate": "1996-08-30",
-    "https://www.yes.com/claims/nationality": "DE",
-    "address": {
-      "formatted": "Heiligengeistbrücke 13\nOhrenbach\nFreistaat Bayern\n91620\nDE",
-      "street_address": "Heiligengeistbrücke 13",
-      "locality": "Ohrenbach",
-      "region": "Freistaat Bayern",
-      "postal_code": "91620",
-      "country": "DE"
+    {
+        "user_id": "04a658e4-2309-4edc-9084-17e346ba22a2",
+        "nickname": "test010",
+        "email": "test010@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+49301111010",
+        "phone_number_verified": true,
+        "given_name": "Given010",
+        "family_name": "Family010",
+        "gender": "male",
+        "birthdate": "1950-10-10",
+        "address": {
+            "formatted": "Street1 1\nBerlin\n10243\nDE",
+            "street_address": "Street10 10",
+            "locality": "Berlin",
+            "region": "Berlin",
+            "postal_code": "10243",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "1121081508150",
+        "https://www.yes.com/claims/preferred_iban": "DE72100500000000000019",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "testunknown"
+            },
+            "organization": "yes Test Bank",
+            "date": "2019-01-02",
+            "id": "7df98de2-8834-48fb-b817-ee087cad8497",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "BA MITTE BÜA 1",
+                "number": "L3FY80140",
+                "date_of_issuance": "2018-01-02",
+                "date_of_expiry": "2028-01-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB08154711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "testunknown",
+                "time": "2012-04-23T18:25:43.511+01",
+                "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2012-04-23T18:00:43.511+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA MITTE BÜA 1",
+                                "country": "DE"
+                            },
+                            "number": "L3FY80140",
+                            "date_of_issuance": "2018-01-02",
+                            "date_of_expiry": "2028-01-02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family001",
+        "birth_middle_name": "Middle001",
+        "birth_given_name": "Given001",
+        "salutation": "Herr",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000000019",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "verification": {
-      "organization": "Bank Y",
-      "date": "2013-02-21",
-      "id": "676q3636461467647q8498785747q487",
-      "method": "identity_document",
-      "identity_document": {
-        "country": "DE",
-        "type": "Passersatz f. Ausländer",
-        "issuer": "Stadt Augsburg",
-        "number": "53554554",
-        "date_of_issuance": "2012-04-23",
-        "date_of_expiry": "2022-04-22",
-        "method": "Physical In-Person Proofing (shop)",
-        "agent": "Post AG"
-      }
+    {
+        "user_id": "a6067bbb-5ebe-4816-b70f-8d0475e667a4",
+        "nickname": "test008",
+        "email": "test008@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+491788888008",
+        "phone_number_verified": true,
+        "given_name": "Given008",
+        "family_name": "Family008",
+        "gender": "male",
+        "birthdate": "1985-08-08",
+        "address": {
+            "formatted": "Street8 8\nStuttgart\nBW\n70173\nDE",
+            "street_address": "Street8 8",
+            "locality": "Stuttgart",
+            "region": "BW",
+            "postal_code": "70173",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/preferred_iban": "DE27600901000000000086",
+        "consented": false,
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Stuttgart"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Swisscom AG",
+            "date": "2019-02-28",
+            "id": "qes",
+            "method": "eID",
+            "eID": {
+                "country": "DE",
+                "type": "ID Card",
+                "identifier": "tbd"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2012-04-23T18:25:43.511+01",
+                "verification_process": "qes",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "eid",
+                        "time": "2012-04-23T18:00:43.511+01",
+                        "verifier": {
+                            "organization": "Swisscom AG",
+                            "txn": "tbd"
+                        },
+                        "document": {
+                            "type": "idcard",
+                            "date_of_issuance": "2018-08-08",
+                            "date_of_expiry": "2028-08-07"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family008",
+        "birth_middle_name": "Middle008",
+        "birth_given_name": "Given008",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Stuttgart"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE27600901000000000086",
+                "account_holder_name": "Given008 Family008",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "https://www.yes.com/claims/tax_id": "09736248057",
-    "https://www.yes.com/claims/preferred_iban": "DE87123456781234567890",
-    "consented": false
-  },
-  {
-    "user_id": "22ec590e-d76d-480c-b320-6e7ecbdd3d9b",
-    "nickname": "Paula",
-    "email": "paula@platform.yes.com",
-    "email_verified": true,
-    "phone_number": "+12025550150",
-    "phone_number_verified": true,
-    "given_name": "Paula",
-    "family_name": "Platform",
-    "gender": "female",
-    "https://www.yes.com/claims/salutation": "Frau",
-    "birthdate": "1982-03-07",
-    "https://www.yes.com/claims/nationality": "DE",
-    "address": {
-      "formatted": "Ruschestrasse 67\nIlsenburg\nSachsen-Anhalt\n38865\nDE",
-      "street_address": "Ruschestrasse 67",
-      "locality": "Ilsenburg",
-      "region": "Sachsen-Anhalt",
-      "postal_code": "38865",
-      "country": "DE"
+    {
+        "user_id": "22ec590e-d76d-480c-b320-6e7ecbdd3d9b",
+        "nickname": "Paula",
+        "email": "paula@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+12025550150",
+        "phone_number_verified": true,
+        "given_name": "Paula",
+        "family_name": "Platform",
+        "gender": "female",
+        "birthdate": "1982-03-07",
+        "address": {
+            "formatted": "Ruschestrasse 67\nIlsenburg\nSachsen-Anhalt\n38865\nDE",
+            "street_address": "Ruschestrasse 67",
+            "locality": "Ilsenburg",
+            "region": "Sachsen-Anhalt",
+            "postal_code": "38865",
+            "country": "DE"
+        },
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Bank Y",
+            "date": "2013-02-21",
+            "id": "676q3636461467647q8498785747q487",
+            "method": "qes",
+            "qes": {
+                "issuer": "de_bdr",
+                "certificate_id": "7367636467467154561546614"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2013-02-21T18:25:43.511+01",
+                "verification_process": "676q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "qes",
+                        "issuer": "de_bdr",
+                        "serial_number": "7367636467467154561546614",
+                        "created_at": "2013-02-21T16:59:04.284+01"
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Platform",
+        "birth_given_name": "Paula",
+        "salutation": "Frau",
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "IBAN123456789",
+                "account_holder_name": "Paula Platform",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "verification": {
-      "organization": "Bank Y",
-      "date": "2013-02-21",
-      "id": "676q3636461467647q8498785747q487",
-      "method": "qes",
-      "qes": {
-        "issuer": "de_bdr",
-        "certificate_id": "7367636467467154561546614"
-      }
+    {
+        "user_id": "36a0b283-0bcd-4d05-a0b8-4731c6469037",
+        "nickname": "test001e",
+        "given_name": "Given001e",
+        "family_name": "Family001e",
+        "birthdate": "1950-01-01",
+        "consented": false,
+        "https://www.yes.com/claims/place_of_birth": {
+            "locality": "Berlin"
+        },
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "yes Test Bank",
+            "date": "2019-01-02",
+            "id": "7df98de2-8834-48fb-b817-ee087cad8497",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "BA MITTE BÜA 1",
+                "number": "L3FY80139",
+                "date_of_issuance": "2018-01-02",
+                "date_of_expiry": "2028-01-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB08154711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA MITTE BÜA 1",
+                                "country": "DE"
+                            },
+                            "number": "L3FY80139",
+                            "date_of_issuance": "2018-01-02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "IBAN123456789",
+                "account_holder_name": "Given001e Family001e",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "consented": false
-  },
-  {
-    "user_id": "dd58b19f-ee5d-4a14-af47-934b62c8137e",
-    "nickname": "Anna",
-    "email": "anna@platform.yes.com",
-    "email_verified": true,
-    "phone_number": "+12025550132",
-    "phone_number_verified": false,
-    "given_name": "Anne",
-    "family_name": "Mayer-Sjöberg",
-    "gender": "female",
-    "https://www.yes.com/claims/salutation": "Frau",
-    "https://www.yes.com/claims/title": "Prof.",
-    "https://www.yes.com/claims/place_of_birth": {
-      "country": "DE",
-      "locality": "Rösrath"
+    {
+        "user_id": "ce2832ab-7eed-4e6d-93b0-eb4c815f79a3",
+        "nickname": "test003",
+        "email": "test003@platform.yes.com",
+        "email_verified": false,
+        "phone_number": "+49893333003",
+        "phone_number_verified": false,
+        "given_name": "Given003",
+        "family_name": "Family003",
+        "gender": "male",
+        "birthdate": "1960-03-03",
+        "address": {
+            "formatted": "Street3 3\nMünchen\n81679\nDE",
+            "street_address": "Street3 3",
+            "locality": "München",
+            "postal_code": "81679",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "9181081508155",
+        "https://www.yes.com/claims/preferred_iban": "DE56701500000000000034",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "München"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Deutsche Post AG",
+            "date": "2019-02-13",
+            "id": "f4aa7bbb-3d7b-4ca0-957c-c2d451bb8347",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "Landeshauptstadt München",
+                "number": "LF0855799",
+                "date_of_issuance": "2017-03-04",
+                "date_of_expiry": "2027-03-03",
+                "method": "Physical In-Person Proofing (shop)",
+                "agent": "2019tidpa0815"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2019-02-13T11:22:33.444+01",
+                "verification_process": "f4aa7bbb-3d7b-4ca0-957c-c2d451bb8347",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2019-02-13T11:00:33.444+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "Landeshauptstadt München",
+                                "country": "DE"
+                            },
+                            "number": "LF0855799",
+                            "date_of_issuance": "2017-03-04",
+                            "date_of_expiry": "2027-03-03"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family003",
+        "birth_middle_name": "Middle003",
+        "birth_given_name": "Given003",
+        "salutation": "Herr",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "München"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE56701500000000000034",
+                "account_holder_name": "Given003 Family003",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "birthdate": "1955-11-23",
-    "https://www.yes.com/claims/nationality": "DE",
-    "https://www.yes.com/claims/tax_id": "01072495644",
-    "https://www.yes.com/claims/preferred_iban": "DE12500105170648489811",
-    "address": {
-      "formatted": "Lüghauser Str. 16\nRösrath\nNRW\n51503\nDE",
-      "street_address": "Lüghauser Str. 16",
-      "locality": "Rösrath",
-      "region": "NRW",
-      "postal_code": "51503",
-      "country": "DE"
+    {
+        "user_id": "69feb303-2ca3-49d4-a4f2-dc6c659ee952",
+        "nickname": "test001x",
+        "email": "test001@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+49301111001",
+        "phone_number_verified": true,
+        "given_name": "Given001",
+        "family_name": "Family001",
+        "gender": "male",
+        "birthdate": "1950-01-01",
+        "address": {
+            "formatted": "Street1 1\nBerlin\n10243\nDE",
+            "street_address": "Street1 1",
+            "locality": "Berlin",
+            "region": "Berlin",
+            "postal_code": "10243",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "1121081508150",
+        "https://www.yes.com/claims/preferred_iban": "DE72100500000000000019",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/title": "Dr.",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "yes Test Bank",
+            "date": "2019-01-02",
+            "id": "7df98de2-8834-48fb-b817-ee087cad8497",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "BA MITTE BÜA 1",
+                "number": "L3FY80139",
+                "date_of_issuance": "2018-01-02",
+                "date_of_expiry": "2028-01-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB08154711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA MITTE BÜA 1"
+                            },
+                            "number": "L3FY80139",
+                            "date_of_issuance": "2018-01-02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family001",
+        "birth_middle_name": "Middle001",
+        "birth_given_name": "Given001",
+        "salutation": "Herr",
+        "title": "Dr.",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE72100500000000000019",
+                "account_holder_name": "Given001 Family001",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "verification": {
-      "organization": "Bank Y",
-      "date": "2018-02-21",
-      "id": "676q3636461467647q8222285747q487",
-      "method": "eID",
-      "eID": {
-        "country": "DE",
-        "type": "ID Card",
-        "identifier": "DE1234567892"
-      }
+    {
+        "user_id": "6b8520c9-6824-45de-9ce9-da5373d964d8",
+        "nickname": "Test User",
+        "email": "test@platform.yes.com",
+        "email_verified": false,
+        "phone_number": "+12025550136",
+        "phone_number_verified": false,
+        "given_name": "Andreas",
+        "family_name": "Wagner",
+        "gender": "divers",
+        "birthdate": "1969-11-21",
+        "https://www.yes.com/claims/tax_id": "01072495633",
+        "https://www.yes.com/claims/preferred_iban": "DE12500105170648489890",
+        "consented": false,
+        "https://www.yes.com/claims/title": "Prof. Dr. Dr.",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "US",
+            "locality": "Raccoon City"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "birth_family_name": "Wagner",
+        "birth_middle_name": "Montgomery",
+        "birth_given_name": "Andreas",
+        "title": "Prof. Dr. Dr.",
+        "place_of_birth": {
+            "country": "US",
+            "locality": "Raccoon City"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE12500105170648489890",
+                "account_holder_name": "Andreas Wagner",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "consented": false
-  },
-  {
-    "user_id": "a79dd9dd-1ec0-47d0-a640-748f1d32d0e1",
-    "nickname": "Consented",
-    "email": "carsten@platform.yes.com",
-    "email_verified": true,
-    "phone_number": "+12025550163",
-    "phone_number_verified": false,
-    "given_name": "Carsten",
-    "family_name": "Onsented",
-    "gender": "male",
-    "https://www.yes.com/claims/salutation": "Herr",
-    "https://www.yes.com/claims/place_of_birth": {
-      "country": "DE",
-      "locality": "Rösrath"
+    {
+        "user_id": "47f8d996-d1b6-4190-9c41-124b0fdcb9af",
+        "nickname": "test001exp",
+        "given_name": "Given001exp",
+        "family_name": "Family001exp",
+        "birthdate": "1950-01-01",
+        "consented": false,
+        "https://www.yes.com/claims/place_of_birth": {
+            "locality": "Berlin"
+        },
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "yes Test Bank",
+            "date": "2019-01-02",
+            "id": "7df98de2-8834-48fb-b817-ee087cad8497",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "BA MITTE BÜA 1",
+                "number": "L3FY80139",
+                "date_of_issuance": "1998-01-02",
+                "date_of_expiry": "2008-01-02",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB08154711"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA MITTE BÜA 1",
+                                "country": "DE"
+                            },
+                            "number": "L3FY80139",
+                            "date_of_issuance": "2008-01-02"
+                        }
+                    }
+                ]
+            }
+        ],
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "IBAN123456789",
+                "account_holder_name": "Given001exp Family001exp",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "birthdate": "1945-12-01",
-    "https://www.yes.com/claims/nationality": "DE",
-    "address": {
-      "formatted": "Lüghauser Str. 17\nRösrath\nNRW\n51503\nDE",
-      "street_address": "Lüghauser Str. 17",
-      "locality": "Rösrath",
-      "region": "NRW",
-      "postal_code": "51503",
-      "country": "DE"
+    {
+        "user_id": "c1e2c418-fc93-41fc-803a-eaa6fcfa2687",
+        "nickname": "test009",
+        "email": "test009@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+491799999009",
+        "phone_number_verified": true,
+        "given_name": "Given009",
+        "family_name": "Family009",
+        "gender": "female",
+        "birthdate": "1990-09-09",
+        "address": {
+            "formatted": "Stuttgart\nNRW\nDE",
+            "locality": "Stuttgart",
+            "region": "NRW",
+            "country": "DE"
+        },
+        "consented": false,
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Dortmund"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "birth_family_name": "Family009",
+        "birth_middle_name": "Middle009",
+        "birth_given_name": "Given009",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Dortmund"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "IBAN123456789",
+                "account_holder_name": "Given009 Family009",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "verification": {
-      "organization": "Bank Y",
-      "date": "2013-02-21",
-      "id": "676q3636461467647q8498785747q487",
-      "method": "eID",
-      "eID": {
-        "country": "DE",
-        "type": "ID Card",
-        "identifier": "DE02938137566"
-      }
+    {
+        "user_id": "c602d4b5-c67f-46dc-9137-7f8bb6eff07f",
+        "nickname": "test005",
+        "email": "test005@platform.yes.com",
+        "email_verified": false,
+        "phone_number": "+492921555005",
+        "phone_number_verified": true,
+        "given_name": "Given005",
+        "family_name": "Family005",
+        "gender": "female",
+        "birthdate": "1970-05-05",
+        "address": {
+            "formatted": "Street5 5\nSoest\nNRW\n59494\nDE",
+            "street_address": "Street5 5",
+            "locality": "Soest",
+            "region": "NRW",
+            "postal_code": "59494",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/preferred_iban": "DE28414601160000000053",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/title": "Dr.",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Deutsche Post AG",
+            "date": "2017-06-13",
+            "id": "bcd9d845-47f7-4298-9b2b-e0780eecab99",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "Stadt Soest",
+                "number": "L7W751966",
+                "date_of_issuance": "2017-05-06",
+                "date_of_expiry": "2028-05-05",
+                "method": "Physical In-Person Proofing (courier)",
+                "agent": "DP646862514"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2017-06-13T05:05:05.005+01",
+                "verification_process": "bcd9d845-47f7-4298-9b2b-e0780eecab99",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2017-06-13T05:00:05.005+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "Stadt Soest",
+                                "country": "DE"
+                            },
+                            "number": "L7W751966",
+                            "date_of_issuance": "2017-05-06",
+                            "date_of_expiry": "2028-05-05"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family005",
+        "birth_middle_name": "Middle005",
+        "birth_given_name": "Given005",
+        "salutation": "Frau",
+        "title": "Dr.",
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE28414601160000000053",
+                "account_holder_name": "Given005 Family005",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
     },
-    "https://www.yes.com/claims/tax_id": "02938137566",
-    "https://www.yes.com/claims/preferred_iban": "DE12110111545989711010",
-    "consented": true
-  }
+    {
+        "user_id": "a79dd9dd-1ec0-47d0-a640-748f1d32d0e1",
+        "nickname": "Consented",
+        "email": "carsten@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+12025550163",
+        "phone_number_verified": false,
+        "given_name": "Carsten",
+        "family_name": "Onsented",
+        "gender": "male",
+        "birthdate": "1945-12-01",
+        "address": {
+            "formatted": "Lüghauser Str. 17\nRösrath\nNRW\n51503\nDE",
+            "street_address": "Lüghauser Str. 17",
+            "locality": "Rösrath",
+            "region": "NRW",
+            "postal_code": "51503",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "02938137566",
+        "https://www.yes.com/claims/preferred_iban": "DE12110111545989711010",
+        "consented": true,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Bank Y",
+            "date": "2013-02-21",
+            "id": "676q3636461467647q8498785747q487",
+            "method": "eID",
+            "eID": {
+                "country": "DE",
+                "type": "ID Card",
+                "identifier": "DE02938137566"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2013-02-21T09:45:06.483+01",
+                "verification_process": "676q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "eid",
+                        "time": "2013-02-21T09:00:06.483+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "country": "DE"
+                            },
+                            "date_of_issuance": "2018-11-01",
+                            "date_of_expiry": "2028-10-31"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Onsented",
+        "birth_middle_name": "Montgomery",
+        "birth_given_name": "Carsten",
+        "salutation": "Herr",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE12110111545989711010",
+                "account_holder_name": "Carsten Onsented",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "00c0c355-97b6-4fbb-84df-0c3bdc28a512",
+        "nickname": "test007",
+        "email": "test007@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+1777777007",
+        "phone_number_verified": true,
+        "given_name": "Given007",
+        "family_name": "Family007",
+        "gender": "female",
+        "birthdate": "1980-07-07",
+        "address": {
+            "formatted": "Street7 7\nFrankfurt am Main\nHessen\n60311\nDE",
+            "street_address": "Street7 7",
+            "locality": "Frankfurt am Main",
+            "region": "Hessen",
+            "postal_code": "60311",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "1121081508150",
+        "https://www.yes.com/claims/preferred_iban": "DE36500502010000000075",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Frankfurt am Main"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Swisscom AG",
+            "date": "2019-02-28",
+            "id": "47770817",
+            "method": "qes",
+            "qes": {
+                "issuer": "de_bdr",
+                "certificate_id": "5465656578213678373356768"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2019-02-28T07:07:07.070+01",
+                "verification_process": "676q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "qes",
+                        "issuer": "de_bdr",
+                        "serial_number": "5465656578213678373356768",
+                        "created_at": "2019-02-28T07:07:07.007+01"
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Family007",
+        "birth_middle_name": "Middle007",
+        "birth_given_name": "Given007",
+        "salutation": "Frau",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Frankfurt am Main"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE36500502010000000075",
+                "account_holder_name": "Given007 Family007",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "19b8d0e9-3606-4e25-97c9-7bdffae38dab",
+        "nickname": "test011",
+        "email": "test011@platform.yes.com",
+        "email_verified": false,
+        "given_name": "Given011",
+        "family_name": "Family011",
+        "consented": false,
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "testunknown",
+                "time": "2012-04-23T18:25:43.511+01",
+                "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2012-04-23T18:00:43.511+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "BA Nord",
+                                "country": "DE"
+                            },
+                            "number": "L1FY80011",
+                            "date_of_issuance": "2017-11-11",
+                            "date_of_expiry": "2027-11-10"
+                        }
+                    }
+                ]
+            }
+        ],
+        "salutation": "Frau",
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "IBAN123456789",
+                "account_holder_name": "Given011 Family011",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "8b9f9588-4ad1-4069-9c66-7231f79d41c0",
+        "nickname": "Peter",
+        "email": "peter@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+12025550143",
+        "phone_number_verified": true,
+        "given_name": "Peter",
+        "family_name": "Gottschalk",
+        "gender": "male",
+        "birthdate": "1996-08-30",
+        "address": {
+            "formatted": "Heiligengeistbrücke 13\nOhrenbach\nFreistaat Bayern\n91620\nDE",
+            "street_address": "Heiligengeistbrücke 13",
+            "locality": "Ohrenbach",
+            "region": "Freistaat Bayern",
+            "postal_code": "91620",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "09736248057",
+        "https://www.yes.com/claims/preferred_iban": "DE87123456781234567890",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Bank Y",
+            "date": "2013-02-21",
+            "id": "676q3636461467647q8498785747q487",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "Passersatz f. Ausländer",
+                "issuer": "Stadt Augsburg",
+                "number": "53554554",
+                "date_of_issuance": "2012-04-23",
+                "date_of_expiry": "2022-04-22",
+                "method": "Physical In-Person Proofing (shop)",
+                "agent": "Post AG"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2013-02-21T14:57:09.743Z",
+                "verification_process": "676q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2013-02-21T14:00:09.743Z",
+                        "document": {
+                            "type": "de_idcard_foreigners",
+                            "issuer": {
+                                "name": "Stadt Augsburg",
+                                "country": "DE"
+                            },
+                            "number": "53554554",
+                            "date_of_issuance": "2012-04-23",
+                            "date_of_expiry": "2022-04-22"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "trust_framework": "de_aml",
+                "time": "2017-11-05T14:00:00.000Z",
+                "verification_process": "888q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2017-11-05T14:00:00.000Z",
+                        "document": {
+                            "type": "passport",
+                            "issuer": {
+                                "name": "Bundesrepublik Deutschland",
+                                "country": "DE"
+                            },
+                            "number": "77754554",
+                            "date_of_issuance": "2016-05-04",
+                            "date_of_expiry": "2038-04-22"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Gottschalk",
+        "birth_middle_name": "Montgomery",
+        "birth_given_name": "Peter",
+        "salutation": "Herr",
+        "title": "Dr.",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE87123456781234567890",
+                "account_holder_name": "Peter Gottschalk",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "4e3ea9f5-2895-42c1-aa8a-9b5b726c708f",
+        "nickname": "Hans",
+        "email": "hans@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+12025550163",
+        "phone_number_verified": false,
+        "given_name": "Hans",
+        "family_name": "Hermann",
+        "gender": "male",
+        "birthdate": "1985-12-06",
+        "address": {
+            "formatted": "Lüghauser Str. 16\nRösrath\nNRW\n51503\nDE",
+            "street_address": "Lüghauser Str. 16",
+            "locality": "Rösrath",
+            "region": "NRW",
+            "postal_code": "51503",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "02138097565",
+        "https://www.yes.com/claims/preferred_iban": "DE91100000000123456789",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Herr",
+        "https://www.yes.com/claims/title": "Dr.",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Bank Y",
+            "date": "2013-02-21",
+            "id": "676q3636461467647q8498785747q487",
+            "method": "eID",
+            "eID": {
+                "country": "DE",
+                "type": "ID Card",
+                "identifier": "DE1234567890"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2013-02-21T14:12:41.671+01",
+                "verification_process": "676q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "eid",
+                        "time": "2013-02-21T14:00:41.671+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "country": "DE"
+                            },
+                            "date_of_issuance": "2018-10-01",
+                            "date_of_expiry": "2028-09-30"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Hermann",
+        "birth_middle_name": "Montgomery",
+        "birth_given_name": "Hans",
+        "salutation": "Herr",
+        "title": "Dr.",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE91100000000123456789",
+                "account_holder_name": "Hans Hermann",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "92a6ae18-680a-49b7-9535-5f5345a42e4f",
+        "nickname": "erika",
+        "email": "erika.mustermann@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+12025550199",
+        "phone_number_verified": true,
+        "given_name": "Erika",
+        "family_name": "Mustermann",
+        "gender": "female",
+        "birthdate": "1964-10-31",
+        "address": {
+            "formatted": "Heidestrasse 17\nKöln\nNRW\n51147\nDE",
+            "street_address": "Heidestrasse 17",
+            "locality": "Köln",
+            "region": "NRW",
+            "postal_code": "51147",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "02938137566",
+        "https://www.yes.com/claims/preferred_iban": "DE12110111545989711010",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Sparkasse KölnBonn",
+            "date": "2011-04-09",
+            "id": "SKB2255441325d14",
+            "method": "identity_document",
+            "identity_document": {
+                "country": "DE",
+                "type": "ID Card",
+                "issuer": "Stadt Köln",
+                "number": "T22000129",
+                "date_of_issuance": "2010-11-01",
+                "date_of_expiry": "2020-10-31",
+                "method": "Physical In-Person Proofing (bank)",
+                "agent": "SKB47110815"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2011-04-09T16:23:32.891+01",
+                "verification_process": "SKB2255441325d14",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "pipp",
+                        "time": "2011-04-09T16:00:32.891+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "name": "Stadt Köln",
+                                "country": "DE"
+                            },
+                            "number": "T22000129",
+                            "date_of_issuance": "2010-11-01",
+                            "date_of_expiry": "2020-10-31"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Mustermann",
+        "birth_middle_name": "Montgomery",
+        "birth_given_name": "Erika",
+        "salutation": "Frau",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Berlin"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE12110111545989711010",
+                "account_holder_name": "Erika Mustermann",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "0c41e8aa-4b96-41a2-8c63-e9571ad6c518",
+        "nickname": "test004",
+        "email": "test004@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+491744444004",
+        "phone_number_verified": false,
+        "given_name": "Given004",
+        "family_name": "Family004",
+        "gender": "female",
+        "birthdate": "1965-04-04",
+        "address": {
+            "formatted": "Street4 4\nDüsseldorf\n40219\nDE",
+            "street_address": "Street4 4",
+            "locality": "Düsseldorf",
+            "postal_code": "40219",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/preferred_iban": "DE47301602130000000043",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Düsseldorf"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "birth_family_name": "BirthFamiliy004",
+        "birth_middle_name": "Middle004",
+        "birth_given_name": "Given004",
+        "salutation": "Frau",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Düsseldorf"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE47301602130000000043",
+                "account_holder_name": "Given004 BirthFamiliy004",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    },
+    {
+        "user_id": "dd58b19f-ee5d-4a14-af47-934b62c8137e",
+        "nickname": "Anna",
+        "email": "anna@platform.yes.com",
+        "email_verified": true,
+        "phone_number": "+12025550132",
+        "phone_number_verified": false,
+        "given_name": "Anne",
+        "family_name": "Mayer-Sjöberg",
+        "gender": "female",
+        "birthdate": "1955-11-23",
+        "address": {
+            "formatted": "Lüghauser Str. 16\nRösrath\nNRW\n51503\nDE",
+            "street_address": "Lüghauser Str. 16",
+            "locality": "Rösrath",
+            "region": "NRW",
+            "postal_code": "51503",
+            "country": "DE"
+        },
+        "https://www.yes.com/claims/tax_id": "01072495644",
+        "https://www.yes.com/claims/preferred_iban": "DE64540200900003559777",
+        "consented": false,
+        "https://www.yes.com/claims/salutation": "Frau",
+        "https://www.yes.com/claims/title": "Prof.",
+        "https://www.yes.com/claims/place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "https://www.yes.com/claims/nationality": "DE",
+        "verification_1_1": {
+            "legal_context": {
+                "country": "DE",
+                "regulation": "Geldwäschegesetz"
+            },
+            "organization": "Bank Y",
+            "date": "2018-02-21",
+            "id": "676q3636461467647q8222285747q487",
+            "method": "eID",
+            "eID": {
+                "country": "DE",
+                "type": "ID Card",
+                "identifier": "DE1234567892"
+            }
+        },
+        "verification": [
+            {
+                "id": 1,
+                "trust_framework": "de_aml",
+                "time": "2013-02-21T14:12:41.671+01",
+                "verification_process": "676q3636461467647q8498785747q487",
+                "evidence": [
+                    {
+                        "type": "id_document",
+                        "method": "eid",
+                        "time": "2013-02-21T14:00:41.671+01",
+                        "document": {
+                            "type": "idcard",
+                            "issuer": {
+                                "country": "DE"
+                            },
+                            "date_of_issuance": "2019-08-09",
+                            "date_of_expiry": "2029-08-08"
+                        }
+                    }
+                ]
+            }
+        ],
+        "birth_family_name": "Mayer-Sjöberg",
+        "birth_middle_name": "Montgomery",
+        "birth_given_name": "Anna",
+        "salutation": "Frau",
+        "title": "Prof.",
+        "place_of_birth": {
+            "country": "DE",
+            "locality": "Rösrath"
+        },
+        "nationalities": [
+            "DE"
+        ],
+        "bank_accounts": [
+            {
+                "account_product_name": "giro account",
+                "account_iban": "DE64540200900003559777",
+                "account_holder_name": "Anna Mayer-Sjöberg",
+                "current_balance": "100",
+                "transaction_limit": "50",
+                "transaction_requires_second_factor": "true"
+            }
+        ]
+    }
 ]

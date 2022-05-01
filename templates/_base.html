@@ -28,7 +28,18 @@
             }
         }
     </style>
+    {% block head_scripts %}
+    {% endblock %}
 </head>
-{% block header %}{% endblock %} {% block body %}{% endblock %}
+{% block header %}
+<header class="py-3 mb-4 sticky-top bg-dark text-white navbar navbar-dark">
+    <h3 class="ms-3 mb-md-0"><a href="/" class="text-decoration-none text-white">yes® CADI</a>  <span class="badge rounded-pill bg-danger">Beta</span></h3>
+    {% block header_center %}
+    {% endblock %}
+    <nav class="navbar-nav me-3">
+        <a class="nav-link active" target="_blank" href="https://yes.com/docs/rp-devguide/latest/index.html">Developer Guide</a>
+    </nav>
+</header>
+{% endblock %} {% block body %}{% endblock %}
 
 </html>

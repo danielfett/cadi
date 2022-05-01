@@ -82,7 +82,7 @@ class TokenRequestTestSet(
 
     def t3012_code_has_not_expired(self, session, **_):
         # Calculate how long ago the session was created
-        elapsed = int((datetime.utcnow() - session.created_at).total_seconds())
+        elapsed = int((datetime.utcnow() - session.code_issued_at).total_seconds())
 
         if elapsed > self.CODE_EXPIRE_FAILURE_AFTER:
             return RPTestResult(

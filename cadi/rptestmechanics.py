@@ -196,3 +196,7 @@ class RPTestSet:
             return "\n" + "".join(f"\n 1. {t}" for t in things) + "\n\n"
         else:
             return "\n" + "".join(f"\n * {t}" for t in things) + "\n\n"
+
+    @staticmethod
+    def _list_dict(things):
+        return "\n" + "".join(f"\n  * `{k}`: `{v}`" for k, v in things.items()) + "\n\n"

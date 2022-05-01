@@ -23,10 +23,10 @@ class ClientAuthenticationTestSet(RPTestSet):
                 "This problem is often caused by one of the following: \n\n"
                 "  * Some libraries silently skip the use of the client certificate when the certificate or private key file cannot be found. "
                 "Please ensure that you passed the **certificate and private key** to the HTTP library and that the files can be found by the library.\n"
-                "  * If there is a proxy between you and the endpoint, the proxy may not be configured to pass the client certificate to the endpoint. "
-                "During development, this is often the case when there is **endpoint security software** on your machine that intercepts TLS connections. "
+                "  * If there is a proxy that intercepts TLS connections between you and the endpoint, the proxy cannot pass the client certificate to the endpoint. "
+                "During development, this is often the case when there is **endpoint security software** on your machine or a **company firewall** that intercepts TLS connections. "
                 "Please check if there is a proxy, endpoint security software, or a company firewall between you and the endpoint. "
-                "Check your browser lock icon: If the certificate for yes® CADI shows an issuer other than Microsoft, you are probably behind a TLS intercepting proxy.",
+                "Click on your browser's lock icon and view the details of the certificate: If the certificate for yes® CADI shows an issuer other than Microsoft, you are probably behind a TLS intercepting proxy.",
             )
         else:
             return RPTestResult(

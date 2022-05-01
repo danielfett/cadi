@@ -26,6 +26,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         "code_challenge",
         "code_challenge_method",
         "authorization_details",
+        "acr_values",
     }
 
     def t3010_redirect_uri_valid(self, payload, client_config, **_):
@@ -41,8 +42,8 @@ class AuthorizationRequestTestSet(RPTestSet):
                 RPTestResultStatus.FAILURE,
                 f"Redirect URI (`redirect_uri`) in the authorization request does not match one from the client configuration. "
                 "If you need a different redirect URI registered, please contact yes®. "
-                "Note that for security reasons, the redirect URI must match exactly a registered redirect URI.",
-                extra_details=f"Redirect URI (`redirect_uri`) in the authorization request: `{payload['redirect_uri']}`  \n"
+                "Note that for security reasons, the redirect URI must match exactly a registered redirect URI.\n\n",
+                "Redirect URI (`redirect_uri`) in the authorization request: `{payload['redirect_uri']}`  \n\n"
                 "Redirect URIs in the client configuration: "
                 + self._list_parameters(client_config["redirect_uris"]),
             )
@@ -409,7 +410,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         if not re.match(REGEX, payload["acr_values"]):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                "`acr_values` parameter must be a space-separated list of strings.",
+                f"`acr_values` parameter must be a space-separated list of strings. Current value: `{payload['acr_values']}`",
             )
 
         # The acr_values parameter must contain 'openid' if the claims parameter is used
@@ -455,12 +456,13 @@ class AuthorizationRequestTestSet(RPTestSet):
         if not "state" in payload:
             return RPTestResult(
                 RPTestResultStatus.INFO,
-                "State parameter is not used in the authorization request.",
+                "State parameter is not used in the authorization request. "
+                "This is fine. The state parameter is optional, and may be used to prevent CSRF attacks.",
                 service_information={"Security: State parameter": "Not used"},
             )
         else:
             return RPTestResult(
-                RPTestResultStatus.INFO,
+                RPTestResultStatus.SUCCESS,
                 "State parameter is used in the authorization request.",
                 service_information={"Security: State parameter": "In use"},
                 output_data={"state": payload["state"]},
@@ -684,7 +686,8 @@ class AuthorizationRequestTestSet(RPTestSet):
         if not "authorization_details" in payload:
             return RPTestResult(
                 RPTestResultStatus.INFO,
-                "The `authorization_details` parameter is not used in the authorization request.",
+                "The `authorization_details` parameter is not used in the authorization request. "
+                "This is fine - it means that the the signing nor payment initiation services are not used.",
                 service_information={
                     "Service Payment Initiation requested": "no",
                     "Service Signing requested": "no",
@@ -763,7 +766,8 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.WARNING,
                 "The following parameters are not defined in the yes® spec and should not be used in the authorization request: "
-                + self._list_parameters(extra_parameters),
+                + self._list_parameters(extra_parameters) + 
+                "If you added this or these parameters on purpose, please check that they are spelled correctly!",
             )
 
         return RPTestResult(

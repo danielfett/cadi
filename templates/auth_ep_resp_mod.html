@@ -1,23 +1,13 @@
-{% extends "_base.html" %} {% block header %}
-<header class="d-flex flex-wrap justify-content-between py-3 mb-4 border-bottom sticky-top bg-white">
-    <a href="/" class="ms-3 mb-md-0 text-dark text-decoration-none fs-5">yes® CADI</a>
-    <div>
-        <h1 class="fs-4 mb-0 text-center">
-            Authorization Endpoint
-        </h1>
-    </div>
-    <ul class="nav nav-pills ma-3">
-        <li class="nav-item">
-            <a href="https://yes.com/docs/rp-devguide/latest/index.html" class="nav-link">Developer Guide</a>
-        </li>
-    </ul>
-</header>
+{% extends "_base.html" %} {% block header_center %}
+<h1 class="fs-4 mb-0 text-center">
+    Authorization Endpoint
+</h1>
 {% endblock %} {% block body %}
 
 <body>
     <div class="container">
         <h4>
-            Which user claims should we deliver?
+            What user claims shall we deliver?
         </h4>
         <p>Feel free to modify the contents of the responses!</p>
 

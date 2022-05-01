@@ -2,11 +2,29 @@ from urllib.parse import parse_qs
 
 from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 
-
+FILTERED_HEADERS = [
+    "Remote-Addr",
+    "X-Client-Ip",
+    "X-Client-Port",
+    "Max-Forwards",
+    "X-Waws-Unencoded-Url",
+    "Client-Ip",
+    "X-Arr-Log-Id",
+    "Disguised-Host",
+    "X-Site-Deployment-Id",
+    "Was-Default-Hostname",
+    "X-Original-Url",
+    "X-Forwarded-For",
+    "X-Arr-Ssl",
+    "X-Forwarded-Proto",
+    "X-Appservice-Proto",
+    "X-Forwarded-Tlsversion",
+    "X-Arr-Clientcert",
+]
 def dump_cherrypy_request_headers(request):
     return (
         f"{request.method} {request.path_info}{'?' if request.query_string != '' else ''}{request.query_string}\n"
-        + "\n".join(c + ": " + v for c, v in request.headers.items())
+        + "\n".join(c + ": " + v for c, v in request.headers.items() if c not in FILTERED_HEADERS)
     )
 
 
@@ -74,6 +92,7 @@ class POSTRequestTestSet(RPTestSet):
             RPTestResultStatus.SUCCESS,
             "The request body is properly formatted.",
             output_data={"payload": request.body_params},
+            request_info={"POST parameters": self._list_dict(request.body_params)},
         )
 
     t0002_body_encoded_correctly.title = "Request body encoded properly?"
@@ -160,6 +179,7 @@ class GETRequestTestSet(RPTestSet):
             RPTestResultStatus.SUCCESS,
             "The request URL is properly formatted.",
             output_data={"payload": payload},
+            request_info={"GET parameters": self._list_dict(payload)},
         )
 
     t0010_request_url_assembled_correctly.title = "Request URL encoded properly?"

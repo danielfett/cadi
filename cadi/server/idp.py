@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import re
 import time
@@ -62,6 +63,7 @@ class IDP:
             }
 
         else:
+            cherrypy.response.status = 201
             return {
                 "request_uri": test.data["session"].request_uri,
                 "expires_in": PARRequestURIAuthorizationRequestTestSet.REQUEST_URI_EXPIRE_WARNING_AFTER,
@@ -178,6 +180,9 @@ class IDP:
             session.userinfo_response_contents = json.loads(userinfo_content_left)
         else:
             session.userinfo_response_contents = json.loads(userinfo_content_right)
+
+        session.code_issued_at = datetime.utcnow()
+        self.session_manager.store(session)
 
         # Use furl library to assemble the redirect URI with the redirect URI from the session.
         # Parameters: state, code, and iss
@@ -375,7 +380,7 @@ class WellKnown:
             "authorization_endpoint": f"{get_base_url()}/idp/auth?{TraditionalAuthorizationRequestTestSet.DUMMY_PARAMETER}=42",
             "token_endpoint": f"{get_base_url()}/idp/token",
             "userinfo_endpoint": f"{get_base_url()}/idp/userinfo",
-            "pushed_authorization_request_endpoint": f"{get_base_url()}/idp/push_auth",
+            "pushed_authorization_request_endpoint": f"{get_base_url()}/idp/par",
             "jwks_uri": f"{get_base_url()}/idp/jwks",
             "scopes_supported": ["openid"],
             "response_types_supported": ["code"],

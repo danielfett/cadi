@@ -42,6 +42,9 @@ class IDPSession:
     # Store the creation timestamp
     created_at: float = field(default_factory=lambda: datetime.utcnow())
 
+    # Store the issuance time of the authorization code
+    code_issued_at: Optional[float] = None
+
 
 class SessionManager:
     MAX_OPEN_SESSIONS_PER_CLIENT = 10

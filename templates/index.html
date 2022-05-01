@@ -1,14 +1,12 @@
-{% extends "_base.html" %} {% block body %}
+{% extends "_base.html" %} {% block header %}{% endblock %}{% block body %}
 
 <body class="d-flex h-100 text-center text-white bg-dark">
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-        <header class="mb-auto">
-            <div>
-                <h3 class="float-md-start mb-0">yes® CADI</h3>
-                <nav class="nav nav-masthead justify-content-center float-md-end">
-                    <a class="nav-link active" aria-current="page" href="https://yes.com/docs/rp-devguide/latest/index.html">Developer Guide</a>
-                </nav>
-            </div>
+        <header class="mb-auto navbar navbar-dark">
+            <h3 class="float-md-start mb-0">yes® CADI <span class="badge rounded-pill bg-danger">Beta</span></h3>
+            <nav class="navbar-nav">
+                <a class="nav-link active" target="_blank" href="https://yes.com/docs/rp-devguide/latest/index.html">Developer Guide</a>
+            </nav>
         </header>
         <main class="px-3">
             <h1>Test your RP</h1>
@@ -17,14 +15,14 @@
             </p>
             <p class="lead">
                 <form class="col-align-self-center" method="get" action="/log">
-                    <label for="inputClientID" class="form-label">your yes® Client ID</label>
+                    <label for="inputClientID" class="form-label">your yes® Client ID:</label>
                     <input name="client_id" type="text" class="form-control text-center font-monospace" id="inputClientID" pattern="sandbox\.yes\.com:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" aria-describedby="clientIDHelp" placeholder="sandbox.yes.com:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                         style="margin-left: auto; margin-right: auto; width: 40em;" value="{{ client_id or '' }}">
                     <div id="clientIDHelp" class="form-text {% if error %}text-warning{% endif %}">
                         {% if error == "invalid_client_id" %} The client ID entered is not valid. {% elif error == "invalid_client_id_format" %} The client ID entered does not have the right format. {% else %} If you don't have a client ID yet, <a href="https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html">follow this manual</a>.
                         {% endif %}
                     </div>
-                    <button type="submit" class="btn btn-primary">Show Logs</button>
+                    <button type="submit" class="btn btn-primary mt-3">Show Logs</button>
                 </form>
             </p>
         </main>

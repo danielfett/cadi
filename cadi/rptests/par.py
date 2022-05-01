@@ -46,7 +46,27 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         "request_uri",
     }
 
-    def t0010_has_request_uri_parameter(self, payload, **_):
+    DUMMY_PARAMETER = "dummy_parameter"
+
+
+    def t0020_predefined_parameter_present(self, payload, **_):
+        if not self.DUMMY_PARAMETER in payload:
+            return RPTestResult(
+                RPTestResultStatus.FAILURE,
+                f"The parameter `{self.DUMMY_PARAMETER}` is missing. Please take care to pass on **all** parameters from the `authorization_endpoint` configuration value.",
+            )
+
+        new_payload = {k: v for k, v in payload.items() if k != self.DUMMY_PARAMETER}
+
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            f"The parameter `{self.DUMMY_PARAMETER}` is contained in the URL.",
+            output_data={"payload": new_payload},
+        )
+
+    t0020_predefined_parameter_present.title = "Predefined parameter present in URL?"
+
+    def t3010_has_request_uri_parameter(self, payload, **_):
         if not "request_uri" in payload:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
@@ -59,8 +79,8 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
             output_data={"request_uri": payload["request_uri"]},
         )
 
-    t0010_has_request_uri_parameter.title = "Request URI parameter present?"
-    t0010_has_request_uri_parameter.references = [
+    t3010_has_request_uri_parameter.title = "Request URI parameter present?"
+    t3010_has_request_uri_parameter.references = [
         (
             "RFC9126 - Pushed Authorization Requests, Section 2.1",
             "https://www.rfc-editor.org/rfc/rfc9126.html#section-2.1",
@@ -71,7 +91,7 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         ),
     ]
 
-    def t0020_no_extra_parameters(self, payload, **_):
+    def t3020_no_extra_parameters(self, payload, **_):
         # The request may only contain 'request_uri' and 'client_id' parameters.
 
         # Calculate set of extra parameters
@@ -102,8 +122,8 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
             "The request contains only the parameters `request_uri` and `client_id`.",
         )
 
-    t0020_no_extra_parameters.title = "No extra parameters in URL?"
-    t0020_no_extra_parameters.references = [
+    t3020_no_extra_parameters.title = "No extra parameters in URL?"
+    t3020_no_extra_parameters.references = [
         (
             "RFC9126 - Pushed Authorization Requests, Section 4",
             "https://www.rfc-editor.org/rfc/rfc9126.html#name-authorization-request",
@@ -114,7 +134,7 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         ),
     ]
 
-    def t0030_request_uri_parameter_is_valid(self, request_uri, client_id, **_):
+    def t3030_request_uri_parameter_is_valid(self, request_uri, client_id, **_):
         session = self.session_manager.find(client_id, request_uri=request_uri)
         if session:
             return RPTestResult(
@@ -133,39 +153,39 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
             "\nPlease start a new Pushed Authorization Request to get a new request_uri. ",
         )
 
-    t0030_request_uri_parameter_is_valid.title = (
+    t3030_request_uri_parameter_is_valid.title = (
         "Provided Request URI parameter is valid?"
     )
 
-    def t0040_request_uri_has_not_expired(self, session, **_):
+    def t3040_request_uri_has_not_expired(self, session, **_):
         # Calculate how long ago the session was created
         elapsed = int((datetime.utcnow() - session.created_at).total_seconds())
 
         if elapsed > self.REQUEST_URI_EXPIRE_FAILURE_AFTER:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"The request_uri has expired. "
-                f"The session was created {elapsed} seconds ago. "
+                f"The `request_uri` has expired. "
+                f"It was created {elapsed} seconds ago. "
                 "The `request_uri` should be used immediately after it was issued.",
             )
 
         if elapsed > self.REQUEST_URI_EXPIRE_WARNING_AFTER:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
-                f"The request_uri may have expired in practice. "
-                f"The session was created {elapsed} seconds ago. "
+                f"The `request_uri` may have expired in practice. "
+                f"It was created {elapsed} seconds ago. "
                 "The `request_uri` should be used immediately after it was issued.",
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             f"The `request_uri` has not expired. "
-            f"The session was created {elapsed} seconds ago.",
+            f"It was created {elapsed} seconds ago.",
         )
 
-    t0040_request_uri_has_not_expired.title = "Provided Request URI has not expired?"
+    t3040_request_uri_has_not_expired.title = "Provided Request URI has not expired?"
 
-    def t0050_request_uri_has_not_been_used(self, session, **_):
+    def t3050_request_uri_has_not_been_used(self, session, **_):
         if session.used_request_uri:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
@@ -181,6 +201,6 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
             "This `request_uri` has not been used before.",
         )
 
-    t0050_request_uri_has_not_been_used.title = (
+    t3050_request_uri_has_not_been_used.title = (
         "Provided Request URI has not been used before?"
     )
