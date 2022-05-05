@@ -406,7 +406,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             )
 
         # The acr_values parameter must be a space-separated list of strings
-        REGEX = r"^\w+( \w+)*$"
+        REGEX = r"^\S+( \S+)*$"
         if not re.match(REGEX, payload["acr_values"]):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
