@@ -68,7 +68,7 @@ class POSTRequestTestSet(RPTestSet):
                 "The request does not contain a Content-Type header.",
             )
 
-        if not request.headers["Content-Type"].startswith(
+        if not request.headers["Content-Type"].lower().startswith(
             "application/x-www-form-urlencoded"
         ):
             return RPTestResult(

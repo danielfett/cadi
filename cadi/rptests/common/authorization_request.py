@@ -15,6 +15,11 @@ class AuthorizationRequestTestSet(RPTestSet):
     PKCE_CODE_CHALLENGE_MIN_LENGTH = 43
     PKCE_CODE_CHALLENGE_MAX_LENGTH = 128
 
+    PURPOSE_MIN_LENGTH = 3
+    PURPOSE_MAX_LENGTH = 300
+    # purpose must not contain the characters <>(){}'\
+    PURPOSE_REGEX = re.compile(r"^[^<>(){}'\\]+$")
+
     PERMITTED_PARAMETERS = {
         "client_id",
         "redirect_uri",
@@ -27,6 +32,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         "code_challenge_method",
         "authorization_details",
         "acr_values",
+        "purpose",
     }
 
     def t3010_redirect_uri_valid(self, payload, client_config, **_):
@@ -483,7 +489,8 @@ class AuthorizationRequestTestSet(RPTestSet):
         if len(nonce) < self.NONCE_MIN_LENGTH:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
-                f"Nonce parameter (`nonce`) is too short. It must be at least **{self.NONCE_MIN_LENGTH} characters** long, **{self.NONCE_RECOMMENDED_MIN_LENGTH} characters** are recommended.",
+                f"Nonce parameter (`nonce`) is too short. It must be at least **{self.NONCE_MIN_LENGTH} characters** long, **{self.NONCE_RECOMMENDED_MIN_LENGTH} characters** are recommended."
+                f"\n\nNonce value: `{nonce}`",
                 service_information={"Security: Nonce parameter": "In use"},
                 output_data={"nonce": nonce, "sec_nonce_is_used": True},
             )
@@ -491,7 +498,8 @@ class AuthorizationRequestTestSet(RPTestSet):
         if len(nonce) < self.NONCE_RECOMMENDED_MIN_LENGTH:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
-                f"Nonce parameter (`nonce`) is only {len(nonce)} characters long. It is recommended to use at least **{self.NONCE_RECOMMENDED_MIN_LENGTH} random characters.**",
+                f"Nonce parameter (`nonce`) is only {len(nonce)} characters long. It is recommended to use at least **{self.NONCE_RECOMMENDED_MIN_LENGTH} random characters.**"
+                f"\n\nNonce value: `{nonce}`",
                 service_information={"Security: Nonce parameter": "In use"},
                 output_data={"nonce": nonce, "sec_nonce_is_used": True},
             )
@@ -758,7 +766,51 @@ class AuthorizationRequestTestSet(RPTestSet):
     # TODO: Check the length of the document hashes
     # TODO: Check permissions for sign/payment_initiation
 
-    def t3110_no_extra_parameters(self, payload, **_):
+    def t3110_purpose_length(self, payload, **_):
+        if not "purpose" in payload:
+            return RPTestResult(
+                RPTestResultStatus.INFO,
+                "The `purpose` parameter is not used in the authorization request. "
+                "This is fine - it means that the registered default purpose is used.",
+                service_information={"purpose": "default"},
+            )
+
+        purpose = payload["purpose"]
+        if len(purpose) > self.PURPOSE_MAX_LENGTH:
+            return RPTestResult(
+                RPTestResultStatus.FAILURE,
+                f"The `purpose` parameter is too long. "
+                f"It must be no longer than {self.PURPOSE_MAX_LENGTH} characters.",
+                service_information={"purpose": purpose},
+            )
+
+        if len(purpose) < self.PURPOSE_MIN_LENGTH:
+            return RPTestResult(
+                RPTestResultStatus.FAILURE,
+                f"The `purpose` parameter is too short. "
+                f"It must be at least {self.PURPOSE_MIN_LENGTH} characters.",
+                service_information={"purpose": purpose},
+            )
+
+        # check that purpose matches regular expression
+        if not re.match(self.PURPOSE_REGEX, purpose):
+            return RPTestResult(
+                RPTestResultStatus.FAILURE,
+                f"The `purpose` parameter is not valid. "
+                f"It must match the following regular expression: {self.PURPOSE_REGEX}",
+                service_information={"purpose": purpose},
+            )
+            # TODO: Better explanation for users
+
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            f"The `purpose` parameter is valid.",
+            service_information={"purpose": purpose},
+        )
+
+    t3110_purpose_length.title = "Purpose parameter length ok?"
+
+    def t3120_no_extra_parameters(self, payload, **_):
 
         # Check that no extra parameters are present
         extra_parameters = set(payload.keys()) - self.PERMITTED_PARAMETERS
@@ -766,8 +818,8 @@ class AuthorizationRequestTestSet(RPTestSet):
             return RPTestResult(
                 RPTestResultStatus.WARNING,
                 "The following parameters are not defined in the yes® spec and should not be used in the authorization request: "
-                + self._list_parameters(extra_parameters) + 
-                "If you added this or these parameters on purpose, please check that they are spelled correctly!",
+                + self._list_parameters(extra_parameters)
+                + "If you added this or these parameters on purpose, please check that they are spelled correctly!",
             )
 
         return RPTestResult(
@@ -775,7 +827,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             "No extra parameters are present in the authorization request.",
         )
 
-    t3110_no_extra_parameters.title = "No extra parameters present?"
+    t3120_no_extra_parameters.title = "No extra parameters present?"
 
     def t3120_create_session(
         self,

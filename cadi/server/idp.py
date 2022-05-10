@@ -495,7 +495,7 @@ The contents are mostly a static configuration, but some paths depend on the web
 
 
 class WellKnown:
-    @cherrypy.expose(alias=["openid_configuration", "oauth_configuration"])
+    @cherrypy.expose(alias=["openid_configuration", "oauth_authorization_server"])
     @cherrypy.tools.json_out(handler=json_handler)
     def index(self):
         return {
