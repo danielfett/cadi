@@ -85,7 +85,7 @@ class ClaimsProvider:
     def process_ekyc_request(self, user_id, session, endpoint, minimal):
         user = self._get_user_data(user_id)
 
-        r = session.claims.get(endpoint, {})
+        r = session.claims.get(endpoint, {}) if session.claims else {}
         rvc = r.get("verified_claims", {})  # /verified_claims
         rvcc = rvc.get("claims", {})  # /verified_claims/claims
         rvcv = rvc.get("verification", {})  # /verified_claims/verification

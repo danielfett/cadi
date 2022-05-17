@@ -1,12 +1,12 @@
-from dataclasses import dataclass
-from datetime import datetime
 import json
 import re
 import time
+from datetime import datetime
 
 import cherrypy
 from cadi.idp.ekyc import YES_CLAIMS, YES_VERIFIED_CLAIMS, ClaimsProvider
 from cadi.idp.session import SessionManager
+from cadi.manualtests import RP_MANUAL_TESTS
 from cadi.rptestmechanics import RPTestResultStatus
 from cadi.rptests.token import TokenRequestTestSet
 from cadi.rptests.userinfo import UserinfoRequestTestSet
@@ -19,124 +19,11 @@ from ..rptests.par import (
     PushedAuthorizationRequestTestSet,
 )
 from ..rptests.traditional import TraditionalAuthorizationRequestTestSet
-from ..tools import CLIENT_ID_PATTERN, json_handler, jwk_to_jwks, get_base_url
+from ..tools import CLIENT_ID_PATTERN, get_base_url, json_handler, jwk_to_jwks
 
 
-@dataclass
-class RPManualTest:
-    id: str
-    name: str
-    description: str
-    acceptance_condition: str
-    how_to_fix: str
-
-
-RP_MANUAL_TESTS = {
-    "ID Token": (
-        RPManualTest(
-            "m001_id_token_nonce",
-            "Invalid Nonce in ID Token",
-            "The nonce in the ID Token is different from the one sent in the request. This simulates the result of a CSRF or authorization code injection attack.",
-            "The ID Token must not be accepted.",
-            "Check that you have implemented all ID Token checks as per the developer guide.",
-        ),
-        RPManualTest(
-            "m002_id_token_expired",
-            "Expired ID Token",
-            "The time in the `exp` claim in the ID Token is in the past. This simulates the reslut of a CSRF or authorization code injection attack.",
-            "The ID Token must not be accepted.",
-            "Check that you have implemented all ID Token checks as per the developer guide.",
-        ),
-        RPManualTest(
-            "m003_id_token_aud_wrong",
-            "Wrong Audience in the ID Token",
-            "The `aud` claim in the ID Token does not contain the correct client ID, but a wrong client ID.",
-            "The ID Token must not be accepted.",
-            "Check that you have implemented all ID Token checks as per the developer guide.",
-        ),
-        RPManualTest(
-            "m004_id_token_signature_using_wrong_key",
-            "Wrong ID Token signature",
-            "The ID Token does not contain a valid signature.",
-            "The ID Token must not be accepted.",
-            "Check that you have implemented all ID Token checks as per the developer guide. ",
-        ),
-        RPManualTest(
-            "m005_id_token_signature_alg_is_none",
-            "Insecure ID Token signing algorithm",
-            "The signing algorithm of the ID Token is done using the algorithm `none`, effectively omitting the signature.",
-            "The ID Token must not be accepted.",
-            "Check that you have implemented all ID Token checks as per the developer guide.",
-        ),
-        RPManualTest(
-            "m006_id_token_signature_using_wrong_key",
-            "Wrong key for ID Token signature",
-            "The signing key of the ID Token does not match the published signing key of the IDP.",
-            "The ID Token must not be accepted.",
-            "Check that you have implemented all ID Token checks as per the developer guide.",
-        ),
-    ),
-    "Authorization Response": (
-        RPManualTest(
-            "m010_iss_is_wrong",
-            "Invalid Issuer Identifier",
-            "The `iss` parameter in the authorization response is different from the issuer of the IDP. This simulates an IDP Mix-Up attack.",
-            "The authorization response must not be accepted.",
-            "Check that you have implemented the check on the `iss` parameter as described in the developer guide.",
-        ),
-        RPManualTest(
-            "m011_state_is_wrong",
-            "Invalid State in Response",
-            "The `state` parameter in the authorization response does not match the one in the authorization request. This simulates a CSRF attack. "
-            "However, since either PKCE or Nonce are used as well, `state` is not strictly necessary for CSRF protection. "
-            "Nonetheless, if you're using `state` for in-depth CSRF protection, your application should detect modified `state` values. "
-            "If you have made the decision to use `state` to carry application state, you might want to "
-            "ensure integrity, e.g., using a signature or MAC.",
-            "The authorization response must not be accepted (under the conditions listed).",
-            "By default: The `state` value should be compared to the value stored in the user's browser session. "
-            "When `state` is used only for carrying application state, integrity protection should be considered. ",
-        ),
-    ),
-    "Authentication Details": (
-        RPManualTest(
-            "m020_acr_wrong",
-            "1FA ACR value",
-            "This test sets the parameter `acr` to `https://www.yes.com/acrs/online_banking` in the ID Token, indicating that a single-factor-authentication was performed. ",
-            "If 2FA is critical for the use case, the ID Token must not be accepted.",
-            "Always check that the `acr` parameter is set to the value required for your use case. ",
-        ),
-        RPManualTest(
-            "m021_acr_missing",
-            "Missing ACR value",
-            "This test remove the parameter from the ID Token. ",
-            "If 2FA is critical for the use case, the ID Token must not be accepted.",
-            "Always check that the `acr` parameter is set to the value required for your use case. ",
-        ),
-    ),
-    "User Experience": (
-        RPManualTest(
-            "m080_user_aborts",
-            "User cancels transaction",
-            "The user clicks on 'abort' in the bank's user interface or declines to share data.",
-            "A non-technical message gives the user the option to try again, or to use a different bank or identification method.",
-            "Check the section 'Avoiding Misleading Error Messages' in the developer guide.",
-        ),
-        RPManualTest(
-            "m081_select_different_bank",
-            "User wants to select a different bank.",
-            "The user clicks on 'select a different bank' in the bank's user interface.",
-            "The user is being sent to the account chooser with the option to select a different bank.",
-            "Check the section on the account chooser in the developer guide.",
-        ),
-        RPManualTest(
-            "m082_technical_error",
-            "A technical error occurs during the OpenID flow.",
-            "During the user's interaction with the bank, a technical error occurs.",
-            "The user sees a helpful error message indicating and gets the option to try again.",
-            "Check the section 'Avoiding Misleading Error Messages' in the developer guide.",
-        ),
-    ),
-}
+def slug(text):
+    return re.sub(r"[^\w_-]", "", text).strip().lower()
 
 
 class IDP:
@@ -208,10 +95,10 @@ class IDP:
 
         if "session" in test.data:
             session_id = test.data["session"].sid
-            users_list = self.claims_provider.get_all_users()
         else:
             session_id = None
-            users_list = []
+
+        users_list = self.claims_provider.get_all_users()
 
         # Render the auth_ep.html template
         template = self.j2env.get_template("auth_ep.html")
@@ -223,10 +110,86 @@ class IDP:
             Status=RPTestResultStatus,
             SM=TEST_RESULT_STATUS_MAPPING,
             users_list=users_list,
+            manual_tests=RP_MANUAL_TESTS,
+            slug=slug,
         )
 
     @cherrypy.expose
-    def auth_response_modifications(self, client_id, sid, user_id):
+    def auth_continue(
+        self,
+        client_id,
+        sid,
+        user_id=None,
+        test_case=None,
+        id_token_content_selector=None,
+        id_token_content_left=None,
+        id_token_content_right=None,
+        userinfo_content_selector=None,
+        userinfo_content_left=None,
+        userinfo_content_right=None,
+    ):
+        session = self.session_manager.find(client_id=client_id, sid=sid)
+        if session is None:
+            raise cherrypy.HTTPError(
+                400,
+                "No session with this sid exists for this client ID. Please start a new authorization session.",
+            )
+
+        if test_case == "m000_custom_user_details":
+            # redirect to auth_response_modifications
+            return self._auth_response_modifications(
+                client_id,
+                sid,
+                user_id,
+            )
+
+        if not user_id and not test_case:
+            assert id_token_content_selector
+            assert id_token_content_left
+            assert id_token_content_right
+            assert userinfo_content_selector
+            assert userinfo_content_left
+            assert userinfo_content_right
+
+            if id_token_content_selector == "left":
+                session.id_token_response_contents = json.loads(id_token_content_left)
+            else:
+                session.id_token_response_contents = json.loads(id_token_content_right)
+
+            if userinfo_content_selector == "left":
+                session.userinfo_response_contents = json.loads(userinfo_content_left)
+            else:
+                session.userinfo_response_contents = json.loads(userinfo_content_right)
+
+        else:
+            session.id_token_response_contents = (
+                self.claims_provider.process_ekyc_request(
+                    user_id, session, "id_token", False
+                )
+            )
+
+            session.userinfo_response_contents = (
+                self.claims_provider.process_ekyc_request(
+                    user_id, session, "userinfo", False
+                )
+            )
+
+        session.code_issued_at = datetime.utcnow()
+        session.test_case = test_case
+        self.session_manager.store(session)
+
+        # Use furl library to assemble the redirect URI with the redirect URI from the session.
+        # Parameters: state, code, and iss
+        redirect_uri = furl(session.redirect_uri)
+        if session.state is not None:
+            redirect_uri.args["state"] = session.state
+        redirect_uri.args["code"] = session.authorization_code
+        redirect_uri.args["iss"] = get_base_url() + "/idp"
+
+        # Redirect browser to redirect_uri
+        raise cherrypy.HTTPRedirect(redirect_uri.url)
+
+    def _auth_response_modifications(self, client_id, sid, user_id):
         session = self.session_manager.find(client_id=client_id, sid=sid)
         if session is None:
             raise cherrypy.HTTPError(
@@ -271,49 +234,6 @@ class IDP:
         )
 
     @cherrypy.expose
-    def auth_continue(
-        self,
-        client_id,
-        sid,
-        id_token_content_selector,
-        id_token_content_left,
-        id_token_content_right,
-        userinfo_content_selector,
-        userinfo_content_left,
-        userinfo_content_right,
-    ):
-        session = self.session_manager.find(client_id=client_id, sid=sid)
-        if session is None:
-            raise cherrypy.HTTPError(
-                400,
-                "No session with this sid exists for this client ID. Please start a new authorization session.",
-            )
-
-        if id_token_content_selector == "left":
-            session.id_token_response_contents = json.loads(id_token_content_left)
-        else:
-            session.id_token_response_contents = json.loads(id_token_content_right)
-
-        if userinfo_content_selector == "left":
-            session.userinfo_response_contents = json.loads(userinfo_content_left)
-        else:
-            session.userinfo_response_contents = json.loads(userinfo_content_right)
-
-        session.code_issued_at = datetime.utcnow()
-        self.session_manager.store(session)
-
-        # Use furl library to assemble the redirect URI with the redirect URI from the session.
-        # Parameters: state, code, and iss
-        redirect_uri = furl(session.redirect_uri)
-        if session.state is not None:
-            redirect_uri.args["state"] = session.state
-        redirect_uri.args["code"] = session.authorization_code
-        redirect_uri.args["iss"] = get_base_url() + "/idp"
-
-        # Redirect browser to redirect_uri
-        raise cherrypy.HTTPRedirect(redirect_uri.url)
-
-    @cherrypy.expose
     @cherrypy.tools.json_out(handler=json_handler)
     def token(self, *args, **kwargs):
         client_id = self._desperately_find_client_id(kwargs, cherrypy.request)
@@ -344,15 +264,16 @@ class IDP:
 
         session = test.data["session"]
 
-        id_token = self._create_id_token(session)
-
-        return {
+        response = {
             "access_token": session.access_token,
-            "id_token": id_token,
             "token_type": "Bearer",
             "expires_in": SessionManager.SESSION_EXPIRATION,
-            "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
         }
+
+        if "openid" in session.scopes_list:
+            response["id_token"] = self._create_id_token(session)
+
+        return response
 
     @cherrypy.expose
     @cherrypy.tools.json_out(handler=json_handler)
@@ -478,7 +399,7 @@ class IDP:
         cherrypy.response.headers["Content-Type"] = "application/json"
         return json.dumps(
             {
-                "error_description": f"Error while processing your message: '{message}'\n\n{traceback}",
+                "error_description": f"Error while processing your message: {message}",
                 "error": "server_error",
             }
         )

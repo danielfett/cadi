@@ -80,7 +80,6 @@ class PlatformAPI:
                 client_config,
                 expire=self.EXPIRE_CLIENT_CONFIG,
             )
-        print(repr(client_config))
         return client_config
 
 

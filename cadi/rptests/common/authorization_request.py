@@ -270,6 +270,30 @@ class AuthorizationRequestTestSet(RPTestSet):
         "Claims permitted according to configuration?"
     )
 
+    def t3023_has_verified_claims(self, verified_claims_requested, **_):
+        # Check that at least one verified claim has been requested
+        if not len(verified_claims_requested):
+            return RPTestResult(
+                RPTestResultStatus.WARNING,
+                "No verified claims have been requested. Unverified claims can be modified by the customer. "
+                "Depending on your use case, you might want to request verified claims."
+                "Please consult the developer documentation for more information."
+                , 
+            )
+
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            "At least one verified claim has been requested.",
+        )
+
+    t3023_has_verified_claims.title = "Verified claims requested?"
+    t3023_has_verified_claims.references = [
+        (
+            "yes® Relying Party Developer Guide, Identity Service, Section 1",
+            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_verified_and_unverified_data"
+        )
+    ]
+
     def t3030_scope_format(self, payload, **_):
         # Scope is optional, but only for non-identity flows
         if not "scope" in payload:
@@ -717,6 +741,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             authorization_details_parsed, "authorization_details.json"
         )
         if not success:
+            # TODO: The output of this seems to be broken. Some markdown-parser problem.
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 "The `authorization_details` parameter is not valid. Error: \n\n"
@@ -763,8 +788,26 @@ class AuthorizationRequestTestSet(RPTestSet):
         ),
     ]
 
+    def t3101_authorization_details_types_allowed(self, client_config, authorization_details_parsed, **_):
+        authorization_details_types_used = set(element['type'] for element in authorization_details_parsed)
+        authorization_details_types_allowed = set(client_config['allowed_authorization_data_types'])
+
+        not_allowed_authorization_details_types = authorization_details_types_used - authorization_details_types_allowed
+        if len(not_allowed_authorization_details_types):
+            return RPTestResult(
+                RPTestResultStatus.FAILURE,
+                "You used services that were not configured for this client ID: "
+                + self._list_parameters(not_allowed_authorization_details_types)
+                + "Please contact yes® to fix this."
+            )
+
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            "All services permitted according to configuration."
+        )
+
+    t3101_authorization_details_types_allowed.title = "Services allowed in configuration?"
     # TODO: Check the length of the document hashes
-    # TODO: Check permissions for sign/payment_initiation
 
     def t3110_purpose_length(self, payload, **_):
         if not "purpose" in payload:

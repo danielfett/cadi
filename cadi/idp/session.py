@@ -45,6 +45,9 @@ class IDPSession:
     # Store the issuance time of the authorization code
     code_issued_at: Optional[float] = None
 
+    # If a manual test case was selected, store the test case
+    test_case: Optional[str] = None
+
 
 class SessionManager:
     MAX_OPEN_SESSIONS_PER_CLIENT = 10

@@ -84,6 +84,13 @@ if __name__ == "__main__":
         "/idp/.well-known",
     )
 
+    cherrypy.__version__ = ""
+    cherrypy.config.update(
+        {
+            "response.headers.server": "",
+        }
+    )
+
     cherrypy.server.socket_host = "0.0.0.0"
     cherrypy.server.socket_port = 8000
 
