@@ -54,7 +54,7 @@ class IDPSession:
 
 
 class SessionManager:
-    MAX_OPEN_SESSIONS_PER_CLIENT = 10
+    MAX_OPEN_SESSIONS_PER_CLIENT = 20
     SESSION_EXPIRATION = 60 * 60 * 3  # 3 hours
 
     def __init__(self, cache):
