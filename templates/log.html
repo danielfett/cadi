@@ -65,10 +65,63 @@
     
     {% if len(test_results) == 0 %}
     <div class="container-md mb-4 alert alert-info">
-        <span class="fs-5">
-            Nothing to show yet. Start a new authentication/authorization flow using this Issuer URL:<br>
-            <span class="font-monospace">{{ iss }}</span>
-        </span>
+        <h4 class="text-center mb-3">
+            Nothing to show yet. Follow these steps to see test results:
+        </h4>
+        <div class="card-group">
+            <div class="card me-3">
+                <div class="card-header">
+                    <h2>1.</h2>
+                </div>
+                <div class="card-body"> <p>
+                    From your implementation, start a new yes® flow.
+                    </p>
+                    <hr>
+                    <img class="img-fluid" src="/img/cadi_yes_button.png">
+                    <hr>
+                </div>
+            </div>
+            <div class="card me-3">
+                <div class="card-header">
+                    <h2>2.</h2>
+                </div>
+                <div class="card-body">
+                    <p>
+                    In the account chooser, select <i>yes® CADI</i> as the bank.
+                    If you don't use the account chooser, run a flow with this issuer URL: <span class="font-monospace user-select-all">{{ iss }}</span>
+                    </p>
+                    <hr>
+                    <img class="img-fluid" src="/img/cadi_account_chooser.png">
+                    <hr>
+                </div>
+            </div>
+            <div class="card me-3">
+                <div class="card-header">
+                    <h2>3.</h2>
+                </div>
+                <div class="card-body">
+                    <p>
+                    You will be greeted by the CADI interface. You can click on Continue or select test special test cases to check your implementation in detail.
+                    </p>
+                    <hr>
+                    <img class="img-fluid" src="/img/cadi_authz_endpoint.png">
+                    <hr>
+                </div>
+            </div>
+            <div class="card me-3">
+                <div class="card-header">
+                    <h2>4.</h2>
+                </div>
+                <div class="card-body">
+                    <p>
+                    Done! <a href="javascript:window.location.reload()">Reload this page</a> to see results.
+                    </p>
+                    <hr>
+                    <img class="img-fluid" src="/img/cadi_logs.png">
+                    <hr>
+                </div>
+            </div>
+        </div>
     </div>
     {% else %}
     <div class="container-md mb-4 text-center text-muted">
