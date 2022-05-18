@@ -1,11 +1,15 @@
 from datetime import datetime, timedelta
+import logging
 
 class CADICache:
     CACHE_DICT = {}
+    log = logging.getLogger(__name__)
 
     @staticmethod
     def set(key, value, expire):
         CADICache.CACHE_DICT[key] = (value, datetime.now() + timedelta(seconds=expire))
+
+        CADICache.log.debug(f"Set {key} to {value}")
 
         # expire existing entries
         for k, v in list(CADICache.CACHE_DICT.items()):
@@ -14,15 +18,18 @@ class CADICache:
 
     @staticmethod
     def get(key, default=None):
-        print(key)
         if key in CADICache.CACHE_DICT:
             value, expire = CADICache.CACHE_DICT[key]
             if expire > datetime.now():
+                CADICache.log.debug(f"Get {key} = {value}")
                 return value
+        CADICache.log.debug(f"Get {key} = (default) {default}")
         return default
 
     @staticmethod
     def delete(key):
+        CADICache.log.debug(f"Delete {key}")
+
         if key in CADICache.CACHE_DICT:
             del CADICache.CACHE_DICT[key]
 
@@ -37,7 +44,7 @@ class CADICache:
 
         list_.append(item)
 
-        list_ = list_[:max_entries]
+        list_ = list_[-max_entries:]
         CADICache.set(key, list_, expire)
 
 

@@ -277,8 +277,7 @@ class AuthorizationRequestTestSet(RPTestSet):
                 RPTestResultStatus.WARNING,
                 "No verified claims have been requested. Unverified claims can be modified by the customer. "
                 "Depending on your use case, you might want to request verified claims."
-                "Please consult the developer documentation for more information."
-                , 
+                "Please consult the developer documentation for more information.",
             )
 
         return RPTestResult(
@@ -290,7 +289,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3023_has_verified_claims.references = [
         (
             "yes® Relying Party Developer Guide, Identity Service, Section 1",
-            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_verified_and_unverified_data"
+            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_verified_and_unverified_data",
         )
     ]
 
@@ -462,11 +461,13 @@ class AuthorizationRequestTestSet(RPTestSet):
                 RPTestResultStatus.WARNING,
                 "`acr_values` parameter contains more than one value. "
                 f"It is recommended to use only one of the allowed values (`{ACR_DEF}` or `{ACR_2FA}`).",
+                output_data={"acr_values_list": acr_values_list},
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
             "`acr_values` parameter is present in the authorization request, is of the correct format and contains a valid value.",
+            output_data={"acr_values_list": acr_values_list},
             service_information={
                 "Second-factor authentication": "Requested"
                 if ACR_2FA in acr_values_list
@@ -788,25 +789,35 @@ class AuthorizationRequestTestSet(RPTestSet):
         ),
     ]
 
-    def t3101_authorization_details_types_allowed(self, client_config, authorization_details_parsed, **_):
-        authorization_details_types_used = set(element['type'] for element in authorization_details_parsed)
-        authorization_details_types_allowed = set(client_config['allowed_authorization_data_types'])
+    def t3101_authorization_details_types_allowed(
+        self, client_config, authorization_details_parsed, **_
+    ):
+        authorization_details_types_used = set(
+            element["type"] for element in authorization_details_parsed
+        )
+        authorization_details_types_allowed = set(
+            client_config["allowed_authorization_data_types"]
+        )
 
-        not_allowed_authorization_details_types = authorization_details_types_used - authorization_details_types_allowed
+        not_allowed_authorization_details_types = (
+            authorization_details_types_used - authorization_details_types_allowed
+        )
         if len(not_allowed_authorization_details_types):
             return RPTestResult(
                 RPTestResultStatus.FAILURE,
                 "You used services that were not configured for this client ID: "
                 + self._list_parameters(not_allowed_authorization_details_types)
-                + "Please contact yes® to fix this."
+                + "Please contact yes® to fix this.",
             )
 
         return RPTestResult(
             RPTestResultStatus.SUCCESS,
-            "All services permitted according to configuration."
+            "All services permitted according to configuration.",
         )
 
-    t3101_authorization_details_types_allowed.title = "Services allowed in configuration?"
+    t3101_authorization_details_types_allowed.title = (
+        "Services allowed in configuration?"
+    )
     # TODO: Check the length of the document hashes
 
     def t3110_purpose_length(self, payload, **_):
@@ -884,6 +895,7 @@ class AuthorizationRequestTestSet(RPTestSet):
         code_challenge=None,
         code_challenge_method=None,
         authorization_details_parsed=None,
+        acr_values_list=None,
         **_,
     ):
         # Create IDPSession
@@ -898,6 +910,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,
             authorization_details=authorization_details_parsed,
+            acr_values_list=acr_values_list or [],
         )
 
         self.session_manager.store(session)

@@ -178,7 +178,6 @@ class RPTestSet:
 
             # Bail out if the parameter is not available
             if varname not in self.data:
-                print(f"{fn}: Missing required data value '{varname}'")
                 return False
         return True
 

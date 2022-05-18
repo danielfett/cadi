@@ -35,7 +35,7 @@
                         </select>
                     </div>
                 </div>
-                <div><button type="submit" class="btn btn-primary mt-3" {% if not session_id %}disabled{% endif %}>Continue</button></div>
+                <div><button id="continue_default" type="submit" class="btn btn-primary mt-3" {% if not session_id %}disabled{% endif %}>Continue</button></div>
                 {% if not session_id %}
                 <p class="text-danger">
                     Something was wrong with your request that prevents us from continuing. Please check the details and try again after fixing the request.

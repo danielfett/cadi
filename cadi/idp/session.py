@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional
+import logging
+
+log = logging.getLogger(__name__)
 
 from cadi.tools import random_string_base64
 
@@ -17,6 +20,7 @@ class IDPSession:
     code_challenge: Optional[str]
     code_challenge_method: Optional[str]
     authorization_details: Optional[Dict]
+    acr_values_list: Optional[List[str]]
 
     used_request_uri: bool = False
     used_code: bool = False
@@ -75,6 +79,8 @@ class SessionManager:
             self.SESSION_EXPIRATION,
         )
 
+        log.info(f"Stored session {session.sid} for client {session.client_id}")
+
     def find(
         self,
         client_id,
@@ -86,6 +92,8 @@ class SessionManager:
         # Check if a session with this data exists for the given client_id
         key = ("sessions", client_id)
         the_list = self.cache.get(key, default=[])
+
+        log.info(f"Found {len(the_list)} sessions for client {client_id}")
 
         # Check if the session with the given sid exists in the list
         for s in the_list:

@@ -383,7 +383,8 @@ class IDP:
         claims["iat"] = int(time.time())
         claims["exp"] = int(time.time()) + 3600
         claims["nonce"] = session.nonce
-        # TODO: test all these, including acr!
+        if session.acr_values_list:
+            claims['acr'] = session.acr_values_list[0]
 
         # Create a signed ID token using the server's private key
         id_token = JWT(

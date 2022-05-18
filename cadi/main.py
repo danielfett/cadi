@@ -1,5 +1,6 @@
 import argparse
 import os
+import logging
 
 import cherrypy
 import jinja2
@@ -13,6 +14,9 @@ from .platform_api import DummyAPI, PlatformAPI
 from .tools import create_new_jwk, jinja2_markdown, jinja2_markdown_inline
 
 if __name__ == "__main__":
+    # Set up logger
+    logging.basicConfig(level=logging.DEBUG)
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="CADI Server")
     parser.add_argument("platform_credentials_file", type=argparse.FileType("r"))
