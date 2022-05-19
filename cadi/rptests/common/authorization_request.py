@@ -4,6 +4,7 @@ import re
 from ...idp.session import IDPSession
 from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 from . import validate_with_json_schema
+from ...tools import ACRValues
 
 
 class AuthorizationRequestTestSet(RPTestSet):
@@ -445,22 +446,19 @@ class AuthorizationRequestTestSet(RPTestSet):
         # The acr_values parameter must contain 'openid' if the claims parameter is used
         acr_values_list = payload["acr_values"].split(" ")
 
-        ACR_DEF = "https://www.yes.com/acrs/online_banking"
-        ACR_2FA = "https://www.yes.com/acrs/online_banking_sca"
-
         for val in acr_values_list:
-            if val not in [ACR_DEF, ACR_2FA]:
+            if val not in [ACRValues.DEFAULT, ACRValues.SCA]:
                 return RPTestResult(
                     RPTestResultStatus.FAILURE,
                     f"`acr_values` parameter contains unknown value '{val}'. "
-                    f"Only `{ACR_DEF}` and `{ACR_2FA}` are allowed.",
+                    f"Only `{ACRValues.DEFAULT}` and `{ACRValues.SCA}` are allowed.",
                 )
 
         if len(acr_values_list) > 1:
             return RPTestResult(
                 RPTestResultStatus.WARNING,
                 "`acr_values` parameter contains more than one value. "
-                f"It is recommended to use only one of the allowed values (`{ACR_DEF}` or `{ACR_2FA}`).",
+                f"It is recommended to use only one of the allowed values (`{ACRValues.DEFAULT}` or `{ACRValues.SCA}`).",
                 output_data={"acr_values_list": acr_values_list},
             )
 
@@ -470,7 +468,7 @@ class AuthorizationRequestTestSet(RPTestSet):
             output_data={"acr_values_list": acr_values_list},
             service_information={
                 "Second-factor authentication": "Requested"
-                if ACR_2FA in acr_values_list
+                if ACRValues.SCA in acr_values_list
                 else "Not requested"
             },
         )
@@ -484,7 +482,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     ]
 
     def t3060_state_value_used(self, payload, **_):
-        if not "state" in payload:
+        if "state" not in payload:
             return RPTestResult(
                 RPTestResultStatus.INFO,
                 "State parameter is not used in the authorization request. "

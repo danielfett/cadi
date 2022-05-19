@@ -6,44 +6,57 @@ from datetime import datetime
 import cherrypy
 from cadi.idp.ekyc import YES_CLAIMS, YES_VERIFIED_CLAIMS, ClaimsProvider
 from cadi.idp.session import SessionManager
-from cadi.manualtests import RP_MANUAL_TESTS
+from cadi.manualtests import RP_MANUAL_TESTS, RPManualTest
 from cadi.rptestmechanics import RPTestResultStatus
 from cadi.rptests.token import TokenRequestTestSet
 from cadi.rptests.userinfo import UserinfoRequestTestSet
 from cadi.server.userinterface import TEST_RESULT_STATUS_MAPPING
 from furl import furl
 from jwcrypto.jwt import JWT
+from jwcrypto.jwk import JWK
 
 from ..rptests.par import (
     PARRequestURIAuthorizationRequestTestSet,
     PushedAuthorizationRequestTestSet,
 )
 from ..rptests.traditional import TraditionalAuthorizationRequestTestSet
-from ..tools import CLIENT_ID_PATTERN, get_base_url, json_handler, jwk_to_jwks
+from ..tools import (
+    CLIENT_ID_PATTERN,
+    get_base_url,
+    json_handler,
+    jwk_to_jwks,
+    ACRValues,
+)
 
 
 def slug(text):
-    return re.sub(r"[^\w_-]", "", text).strip().lower()
+    return re.sub(r"[^\w-]", "", text).strip().lower()
 
 
 class IDP:
     MAX_TEST_RESULTS = 10
     TEST_RESULT_EXPIRATION = 60 * 60 * 12  # 12 hours
     MAX_RETRIES_CHECK_AND_SET = 12
+    ID_TOKEN_LIFETIME = 3600
+    INVALID = "__INVALID__"
 
     def __init__(
         self,
         platform_api,
         cache,
         j2env,
-        server_jwk,
     ):
         self.platform_api = platform_api
         self.cache = cache
         self.j2env = j2env
         self.session_manager = SessionManager(cache)
         self.claims_provider = ClaimsProvider()
-        self.server_jwk = server_jwk
+        self.server_jwk = self.create_new_jwk()
+        self.server_jwk_invalid = self.create_new_jwk()
+
+    def create_new_jwk(self):
+        jwk = JWK.generate(kty="RSA", size=2048)
+        return jwk
 
     @cherrypy.expose
     @cherrypy.tools.json_out(handler=json_handler)
@@ -94,11 +107,20 @@ class IDP:
         self._attach_test_results(client_id, test_results)
 
         if "session" in test.data:
+            session = test.data["session"]
             session_id = test.data["session"].sid
         else:
+            session = None
             session_id = None
 
         users_list = self.claims_provider.get_all_users()
+
+        def is_runnable(manual_test: RPManualTest):
+            if not session:
+                return False
+            if manual_test.requires is None:
+                return True
+            return manual_test.requires(session)
 
         # Render the auth_ep.html template
         template = self.j2env.get_template("auth_ep.html")
@@ -107,6 +129,7 @@ class IDP:
             test_results=test_results,
             stats=test_results.get_stats(),
             session_id=session_id,
+            is_runnable=is_runnable,
             Status=RPTestResultStatus,
             SM=TEST_RESULT_STATUS_MAPPING,
             users_list=users_list,
@@ -177,14 +200,36 @@ class IDP:
         session.code_issued_at = datetime.utcnow()
         session.test_case = test_case
         self.session_manager.store(session)
+        self._send_authorization_response(session)
 
+    def _send_authorization_response(self, session):
         # Use furl library to assemble the redirect URI with the redirect URI from the session.
-        # Parameters: state, code, and iss
+        # Parameters: state, code, and iss, or error parameters
         redirect_uri = furl(session.redirect_uri)
         if session.state is not None:
-            redirect_uri.args["state"] = session.state
-        redirect_uri.args["code"] = session.authorization_code
-        redirect_uri.args["iss"] = get_base_url() + "/idp"
+            redirect_uri.args["state"] = session.state + (
+                self.INVALID if session.test_case == "m210_state_is_wrong" else ""
+            )
+
+        redirect_uri.args["iss"] = get_base_url() + (
+            f"/{self.INVALID}" if (session.test_case == "m200_iss_is_wrong") else "/idp"
+        )
+
+        if session.test_case == "m800_user_aborts":
+            redirect_uri.args["error"] = "access_denied"
+            redirect_uri.args[
+                "error_description"
+            ] = "Test: User aborted the authorization"
+        elif session.test_case == "m810_select_different_bank":
+            redirect_uri.args["error"] = "account_selection_requested"
+            redirect_uri.args[
+                "error_description"
+            ] = "Test: User selected a different bank"
+        elif session.test_case == "m820_technical_error":
+            redirect_uri.args["error"] = "server_error"
+            redirect_uri.args["error_description"] = "Test: Technical error"
+        else:
+            redirect_uri.args["code"] = session.authorization_code
 
         # Redirect browser to redirect_uri
         raise cherrypy.HTTPRedirect(redirect_uri.url)
@@ -253,7 +298,7 @@ class IDP:
         test_results = test.run()
         self._attach_test_results(client_id, test_results)
 
-        if not "session" in test.data:
+        if "session" not in test.data:
             cherrypy.response.status = 400
             return {
                 "error": "server_error",
@@ -271,7 +316,21 @@ class IDP:
         }
 
         if "openid" in session.scopes_list:
-            response["id_token"] = self._create_id_token(session)
+            response["id_token"] = self._create_id_token(
+                session,
+                test_invalid_nonce=(session.test_case == "m110_id_token_nonce"),
+                test_expired=(session.test_case == "m120_id_token_expired"),
+                test_aud_wrong=(session.test_case == "m130_id_token_aud_wrong"),
+                test_iss_wrong=(session.test_case == "m131_id_token_iss_wrong"),
+                test_wrong_key=(
+                    session.test_case == "m140_id_token_signature_using_wrong_key"
+                ),
+                test_alg_is_none=(
+                    session.test_case == "m150_id_token_signature_alg_is_none"
+                ),
+                test_acr_wrong=(session.test_case == "m300_acr_wrong"),
+                test_acr_missing=(session.test_case == "m310_acr_missing"),
+            )
 
         return response
 
@@ -376,23 +435,59 @@ class IDP:
             )
         return client_id
 
-    def _create_id_token(self, session):
+    def _create_id_token(
+        self,
+        session,
+        test_invalid_nonce,
+        test_expired,
+        test_aud_wrong,
+        test_iss_wrong,
+        test_wrong_key,
+        test_alg_is_none,
+        test_acr_wrong,
+        test_acr_missing,
+    ):
         claims = session.id_token_response_contents
-        claims["iss"] = get_base_url() + "/idp"
-        claims["aud"] = session.client_id
-        claims["iat"] = int(time.time())
-        claims["exp"] = int(time.time()) + 3600
-        claims["nonce"] = session.nonce
-        if session.acr_values_list:
-            claims['acr'] = session.acr_values_list[0]
+
+        # Issuer
+        claims["iss"] = get_base_url() + (
+            f"/{self.INVALID}" if test_iss_wrong else "/idp"
+        )
+
+        # Audience
+        claims["aud"] = session.client_id + (self.INVALID if test_aud_wrong else "")
+
+        # Issued at and Expiration
+        make_expired = -(self.ID_TOKEN_LIFETIME * 2) if test_expired else 0
+        claims["iat"] = int(time.time()) + make_expired
+        claims["exp"] = int(time.time()) + self.ID_TOKEN_LIFETIME + make_expired
+
+        # Nonce - if provided
+        if session.nonce:
+            claims["nonce"] = session.nonce + (
+                self.INVALID if test_invalid_nonce else ""
+            )
+
+        # ACR Value - if requested
+        if session.acr_values_list and not test_acr_missing:
+            if test_acr_wrong:
+                claims["acr"] = ACRValues.DEFAULT
+            else:
+                if ACRValues.SCA in session.acr_values_list:
+                    claims["acr"] = ACRValues.SCA
+                else:
+                    claims["acr"] = ACRValues.DEFAULT
 
         # Create a signed ID token using the server's private key
         id_token = JWT(
-            header={"kid": "default", "alg": "RS256"},
+            header={"kid": "default", "alg": "none" if test_alg_is_none else "RS256"},
             claims=claims,
-            key=self.server_jwk,
+            key=self.server_jwk_invalid if test_wrong_key else self.server_jwk,
+            algs=["RS256", "none"],
         )
-        id_token.make_signed_token(self.server_jwk)
+        id_token.make_signed_token(
+            self.server_jwk_invalid if test_wrong_key else self.server_jwk
+        )
         return id_token.serialize()
 
     @staticmethod

@@ -85,12 +85,12 @@
                         
                             <p><span class="text-muted">Expected result: </span>{{ test.acceptance_condition }}</p>
                             <p><span class="text-muted">Otherwise: </span>{{ test.how_to_fix }}</p>
-                            <button class="btn btn-secondary mt-3" type="submit" name="test_case" value="{{ test_id }}" {% if not (session_id and test.implemented) %}disabled{% endif %}>
+                            <button class="btn btn-secondary mt-3" type="submit" name="test_case" value="{{ test_id }}" {% if not (session_id and is_runnable(test)) %}disabled{% endif %}>
                                 Run Test
                             </button>
-                            {% if not test.implemented %}
+                            {% if not is_runnable(test) %}
                             <p class="text-danger">
-                                <b>BETA:</b> This test is not implemented yet.
+                                This test cannot be run, either because there are errors in your request or because the test is not applicable to your request.
                             </p>
                             {% endif %}
                         </div>

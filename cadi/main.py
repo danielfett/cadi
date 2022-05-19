@@ -11,7 +11,7 @@ from cadi.server.idp import IDP, WellKnown
 from cadi.server.userinterface import UserInterface
 
 from .platform_api import DummyAPI, PlatformAPI
-from .tools import create_new_jwk, jinja2_markdown, jinja2_markdown_inline
+from .tools import jinja2_markdown, jinja2_markdown_inline
 
 if __name__ == "__main__":
     # Set up logger
@@ -26,10 +26,6 @@ if __name__ == "__main__":
 
     # Prepare Memcache client
     cache = CADICache()
-
-    # Get self-signed certificate from cache or create new one
-    cert_cache_key = "server_jwk"
-    server_jwk = create_new_jwk()
 
     # Prepare yes Platform API
     if not args.dummy_api:
@@ -73,7 +69,6 @@ if __name__ == "__main__":
             platform_api=platform_api,
             cache=cache,
             j2env=jinja2_env,
-            server_jwk=server_jwk,
         ),
         "/idp",
         config={

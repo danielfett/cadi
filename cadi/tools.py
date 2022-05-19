@@ -3,7 +3,6 @@ from hashlib import sha256
 import cherrypy
 import json
 import random
-from jwcrypto.jwk import JWK
 import string
 import os
 
@@ -13,11 +12,18 @@ from markupsafe import Markup
 
 from copy import copy
 
+from prometheus_client import Enum
+
 
 CLIENT_ID_PATTERN = (
     r"sandbox.yes.com:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 )
 
+
+# Enum of ACR values
+class ACRValues(Enum):
+    DEFAULT = "https://www.yes.com/acrs/online_banking"
+    SCA = "https://www.yes.com/acrs/online_banking_sca"
 
 def get_base_url():
     if hostname := os.environ.get("WEBSITE_HOSTNAME", None):
@@ -32,12 +38,6 @@ def json_handler(*args, **kwargs):
 
 def random_string_base64(length: int) -> str:
     return "".join(random.choices(string.digits + string.ascii_letters, k=length))
-
-
-def create_new_jwk():
-    jwk = JWK.generate(kty="RSA", size=2048)
-    return jwk
-
 
 def jwk_to_jwks(jwk):
     jwk_dict = jwk.export_public(as_dict=True)
