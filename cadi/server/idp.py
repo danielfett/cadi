@@ -39,6 +39,7 @@ class IDP:
     MAX_RETRIES_CHECK_AND_SET = 12
     ID_TOKEN_LIFETIME = 3600
     INVALID = "__INVALID__"
+    INVALID_ISSUER = "https://testidp.sandbox.yes.com/issuer/10000009"
 
     def __init__(
         self,
@@ -53,6 +54,9 @@ class IDP:
         self.claims_provider = ClaimsProvider()
         self.server_jwk = self.create_new_jwk()
         self.server_jwk_invalid = self.create_new_jwk()
+
+    def get_issuer(self):
+        return get_base_url() + "/idp"
 
     def create_new_jwk(self):
         jwk = JWK.generate(kty="RSA", size=2048)
@@ -211,9 +215,13 @@ class IDP:
                 self.INVALID if session.test_case == "m210_state_is_wrong" else ""
             )
 
-        redirect_uri.args["iss"] = get_base_url() + (
-            f"/{self.INVALID}" if (session.test_case == "m200_iss_is_wrong") else "/idp"
-        )
+        if session.test_case != "m201_iss_is_missing":
+            if session.test_case == "m200_iss_is_wrong":
+                issuer = self.INVALID_ISSUER
+            else:
+                issuer = self.get_issuer()
+
+            redirect_uri.args["iss"] = issuer
 
         if session.test_case == "m800_user_aborts":
             redirect_uri.args["error"] = "access_denied"
@@ -450,9 +458,7 @@ class IDP:
         claims = session.id_token_response_contents
 
         # Issuer
-        claims["iss"] = get_base_url() + (
-            f"/{self.INVALID}" if test_iss_wrong else "/idp"
-        )
+        claims["iss"] = self.INVALID_ISSUER if test_iss_wrong else self.get_issuer()
 
         # Audience
         claims["aud"] = session.client_id + (self.INVALID if test_aud_wrong else "")

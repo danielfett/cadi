@@ -1,6 +1,11 @@
+from base64 import b64decode
+from collections import OrderedDict
 from datetime import datetime
 
 import cryptography
+from asn1crypto import x509
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import StringIO
 
 from ...rptestmechanics import RPTestResult, RPTestResultStatus, RPTestSet
 
@@ -33,7 +38,7 @@ class ClientAuthenticationTestSet(RPTestSet):
                 RPTestResultStatus.SUCCESS,
                 "A client certificate was presented in the TLS connection.",
                 output_data={"client_certificate": request.headers[self.MTLS_HEADER]},
-                extra_details=f"Presented client certificate:\n{request.headers[self.MTLS_HEADER]}",
+                #extra_details=f"Presented client certificate:\n{request.headers[self.MTLS_HEADER]}",
             )
 
     t2000_client_certificate_present.title = "TLS client certificate present?"
@@ -54,11 +59,24 @@ class ClientAuthenticationTestSet(RPTestSet):
                 ).encode(),
                 cryptography.hazmat.backends.default_backend(),
             )
+
+            # For dumping, load the certificate using asn1crypto;
+            # might want to merge this with the above.
+            signature_object = x509.Certificate.load(b64decode(client_certificate))
+            yaml = YAML(typ="unsafe", pure=True)
+            yaml.Representer.add_representer(OrderedDict, yaml.Representer.represent_dict)
+            yaml.default_flow_style = False
+            # dump to string
+            dumped_cert = StringIO()
+            yaml.dump(signature_object.native, dumped_cert)
+
             return RPTestResult(
                 RPTestResultStatus.SUCCESS,
                 "Client certificate is a valid x509 certificate.",
                 output_data={"client_certificate_parsed": cert},
+                request_info={"Client certificate": self._code(dumped_cert.getvalue())},
             )
+
         except Exception as e:
             return RPTestResult(
                 RPTestResultStatus.FAILURE,

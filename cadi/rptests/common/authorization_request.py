@@ -276,8 +276,8 @@ class AuthorizationRequestTestSet(RPTestSet):
         if not len(verified_claims_requested):
             return RPTestResult(
                 RPTestResultStatus.WARNING,
-                "No verified claims have been requested. Unverified claims can be modified by the customer. "
-                "Depending on your use case, you might want to request verified claims."
+                "No verified claims have been requested. Most (but not all) unverified claims can be modified by the end-user in the online banking interface. "
+                "Depending on your use case, you might want to request verified claims instead of unverified claims. "
                 "Please consult the developer documentation for more information.",
             )
 

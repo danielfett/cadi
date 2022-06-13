@@ -72,6 +72,12 @@ RP_MANUAL_TESTS = {
             acceptance_condition="The authorization response must not be accepted.",
             how_to_fix="Check that you have implemented the check on the `iss` parameter as described in the developer guide.",
         ),
+        "m201_iss_is_missing": RPManualTest(
+            name="Missing Issuer Identifier",
+            description="The `iss` parameter in the authorization response is missing. This simulates an IDP Mix-Up attack.",
+            acceptance_condition="The authorization response must not be accepted.",
+            how_to_fix="Check that you have implemented the check on the `iss` parameter as described in the developer guide.",
+        ),
         "m210_state_is_wrong": RPManualTest(
             name="Invalid State in Response",
             description="The `state` parameter in the authorization response does not match the one in the authorization request. This simulates a CSRF attack. "

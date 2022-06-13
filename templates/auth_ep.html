@@ -81,10 +81,10 @@
                     </h2>
                     <div id="test-details-{{ test_id }}" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#manual-test-list-{{ slug(category) }}">
                         <div class="accordion-body">
-                            <p>{{ test.description }}</p>
+                            <p>{{ test.description|md }}</p>
                         
-                            <p><span class="text-muted">Expected result: </span>{{ test.acceptance_condition }}</p>
-                            <p><span class="text-muted">Otherwise: </span>{{ test.how_to_fix }}</p>
+                            <p><span class="text-muted">Expected result: </span>{{ test.acceptance_condition|md }}</p>
+                            <p><span class="text-muted">Otherwise: </span>{{ test.how_to_fix|md }}</p>
                             <button class="btn btn-secondary mt-3" type="submit" name="test_case" value="{{ test_id }}" {% if not (session_id and is_runnable(test)) %}disabled{% endif %}>
                                 Run Test
                             </button>

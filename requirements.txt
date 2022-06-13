@@ -8,3 +8,5 @@ pyyaml ~= 5.3
 cryptography ~= 35.0
 markdown2 ~= 2.4
 bleach
+asn1crypto ~= 1.5
+ruamel.yaml ~= 0.17

@@ -12,7 +12,7 @@ from markupsafe import Markup
 
 from copy import copy
 
-from prometheus_client import Enum
+from enum import Enum
 
 
 CLIENT_ID_PATTERN = (
@@ -21,7 +21,7 @@ CLIENT_ID_PATTERN = (
 
 
 # Enum of ACR values
-class ACRValues(Enum):
+class ACRValues:
     DEFAULT = "https://www.yes.com/acrs/online_banking"
     SCA = "https://www.yes.com/acrs/online_banking_sca"
 
@@ -79,7 +79,7 @@ inline_tags = ["strong", "em", "code"]
 
 
 def jinja2_markdown(text):
-    html = markdown2.markdown(text, safe_mode=True)
+    html = markdown2.markdown(text, extras=['fenced-code-blocks'])
     result = bleach.clean(html, tags=normal_tags, strip=True)
     return Markup(result)
 
