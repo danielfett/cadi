@@ -218,6 +218,8 @@ class IDP:
         if session.test_case != "m201_iss_is_missing":
             if session.test_case == "m200_iss_is_wrong":
                 issuer = self.INVALID_ISSUER
+            elif session.test_case == "m202_iss_twice":
+                issuer = [self.get_issuer(), self.INVALID_ISSUER]
             else:
                 issuer = self.get_issuer()
 
@@ -230,9 +232,6 @@ class IDP:
             ] = "Test: User aborted the authorization"
         elif session.test_case == "m810_select_different_bank":
             redirect_uri.args["error"] = "account_selection_requested"
-            redirect_uri.args[
-                "error_description"
-            ] = "Test: User selected a different bank"
         elif session.test_case == "m820_technical_error":
             redirect_uri.args["error"] = "server_error"
             redirect_uri.args["error_description"] = "Test: Technical error"

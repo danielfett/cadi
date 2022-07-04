@@ -62,37 +62,44 @@
             </div>
         </div>
         <div class="row mt-5">
-            <div class="col-md-6">
-                <h2>Run a Test</h2>
+            <div class="col-md-12">
+                <h2>Security/Acceptance Tests</h2>
                 <p>The following tests can be used to see if security and other features are implemented correctly.</p>
+                <p><i class="bi bi-shield-fill-exclamation text-primary"></i> marks important security checks that (if applicable) must be passed for acceptance.</p>
+                <p><i class="bi bi-exclamation-square-fill text-primary"></i> marks other important checks that (if applicable) must be passed for acceptance (if applicable).</p>
             </div>
         </div>
         {% for category, tests in manual_tests.items() %}
-        <div class="row mt-3">
-            <h3>{{ category }}</h3>
+        <div class="row mt-4">
+            <h4>{{ category }}</h4>
             <div class="accordion" id="manual-test-list-{{ slug(category) }}">
                 {% for test_id, test in tests.items() %}
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#test-details-{{ test_id }}">
-                        {{ test.name }}
+                            {% if test.important_security_check %}
+                            <i class="bi bi-shield-fill-exclamation text-primary"></i>&nbsp;
+                            {% elif test.important_acceptance_check %}
+                            <i class="bi bi-exclamation-square-fill text-primary"></i>&nbsp;
+                            {% endif %}
+                            {{ test.name }}
                         <span class="text-muted ms-3">{{ test_id }}</span>
                     </button>
                     </h2>
                     <div id="test-details-{{ test_id }}" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#manual-test-list-{{ slug(category) }}">
                         <div class="accordion-body">
                             <p>{{ test.description|md }}</p>
+                            {% if not is_runnable(test) %}
+                            <p class="text-danger">
+                                This test cannot be run, either because the test is not applicable to your request or there are errors in your request.
+                            </p>
+                            {% endif %}
                         
-                            <p><span class="text-muted">Expected result: </span>{{ test.acceptance_condition|md }}</p>
-                            <p><span class="text-muted">Otherwise: </span>{{ test.how_to_fix|md }}</p>
+                            <p><span class="text-muted">Expected result: </span>{{ test.acceptance_condition|md_inline }}</p>
+                            <p><span class="text-muted">Otherwise: </span>{{ test.how_to_fix|md_inline }}</p>
                             <button class="btn btn-secondary mt-3" type="submit" name="test_case" value="{{ test_id }}" {% if not (session_id and is_runnable(test)) %}disabled{% endif %}>
                                 Run Test
                             </button>
-                            {% if not is_runnable(test) %}
-                            <p class="text-danger">
-                                This test cannot be run, either because there are errors in your request or because the test is not applicable to your request.
-                            </p>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
