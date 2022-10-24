@@ -219,12 +219,14 @@ class AuthorizationRequestTestSet(RPTestSet):
 
         if not isinstance(claim_request, dict):
             yield "Claim must either be 'null' or a JSON object"
+            return
 
         if list(claim_request.keys()) != ["essential"]:
             yield (
                 "Claim should be 'null' or a JSON object with the key 'essential'. "
                 "Other keys should not be used."
             )
+            return
 
         if not isinstance(claim_request["essential"], bool):
             yield "The value of 'essential' must be a boolean."
@@ -398,6 +400,29 @@ class AuthorizationRequestTestSet(RPTestSet):
         )
 
     t3032_scope_allowed_values.title = "Only recommended scopes used?"
+
+    def t3033_scopes_within_allowed_scopes(self, client_config, scopes_list, **_):
+        allowed_scopes = set(client_config["allowed_scopes"])
+        used_scopes = set(scopes_list)
+
+        not_allowed_scopes = used_scopes - allowed_scopes
+
+        if not_allowed_scopes:
+            return RPTestResult(
+                RPTestResultStatus.FAILURE,
+                "Requesting the following scopes is not permitted for your client: "
+                + self._list_parameters(
+                    not_allowed_scopes
+                )
+                + " To enable these scopes for your client, please contact yes®.",
+            )
+
+        return RPTestResult(
+            RPTestResultStatus.SUCCESS,
+            "The client is permitted to request the scopes listed in the scopes parameter.",
+        )
+
+    t3033_scopes_within_allowed_scopes.title = "Scopes permitted according to configuration?"
 
     def t3040_response_type_valid(self, payload, **_):
         if not "response_type" in payload:

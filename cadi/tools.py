@@ -41,7 +41,7 @@ def random_string_base64(length: int) -> str:
 
 def jwk_to_jwks(jwk):
     jwk_dict = jwk.export_public(as_dict=True)
-    jwk_dict["use"] = ["sig"]
+    jwk_dict["use"] = "sig"
     jwk_dict["kid"] = "default"
     # Create a JWKS from the public key, including the x5c property
     jwks = {"keys": [jwk_dict]}

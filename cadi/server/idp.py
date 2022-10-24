@@ -34,8 +34,8 @@ def slug(text):
 
 
 class IDP:
-    MAX_TEST_RESULTS = 10
-    TEST_RESULT_EXPIRATION = 60 * 60 * 12  # 12 hours
+    MAX_TEST_RESULTS = 15
+    TEST_RESULT_EXPIRATION = 60 * 60 * 24 * 3  # 3 days
     MAX_RETRIES_CHECK_AND_SET = 12
     ID_TOKEN_LIFETIME = 3600
     INVALID = "__INVALID__"
