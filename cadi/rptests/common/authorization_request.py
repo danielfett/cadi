@@ -65,7 +65,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3010_redirect_uri_valid.references = [
         (
             "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
         ),
     ]
 
@@ -102,7 +102,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3020_claims_valid.references = [
         (
             "yes® Relying Party Developer Guide, Identity Service, Section 1.4",
-            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_requesting_claims",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/IDENTITY/index.html#_requesting_claims",
         ),
         (
             "OpenID Connect for Identity Assurance, Implementers Draft 3",
@@ -292,7 +292,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3023_has_verified_claims.references = [
         (
             "yes® Relying Party Developer Guide, Identity Service, Section 1",
-            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_verified_and_unverified_data",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/IDENTITY/index.html#_verified_and_unverified_data",
         )
     ]
 
@@ -364,7 +364,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3031_scope_matches_service_usage.references = [
         (
             "yes® Relying Party Developer Guide, Identity Service, Section 3.2.1",
-            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_parameters",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/IDENTITY/index.html#_parameters",
         ),
     ]
 
@@ -447,7 +447,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3040_response_type_valid.references = [
         (
             "yes® Relying Party Developer Guide, Identity Service, Section 3.2.1",
-            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#_parameters",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/IDENTITY/index.html#_parameters",
         ),
     ]
 
@@ -502,7 +502,7 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3050_acr_values_valid.references = [
         (
             "yes® Relying Party Developer Guide, Identity Service, Section 3.2.3",
-            "https://yes.com/docs/rp-devguide/latest/IDENTITY/index.html#acr",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/IDENTITY/index.html#acr",
         ),
     ]
 
@@ -800,11 +800,11 @@ class AuthorizationRequestTestSet(RPTestSet):
     t3100_authorization_details_valid.references = [
         (
             "yes® Relying Party Developer Guide, Signing Service, Section 3.2.1",
-            "https://yes.com/docs/rp-devguide/latest/QES/index.html#_authorization_details",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/QES/index.html#_authorization_details",
         ),
         (
             "yes® Relying Party Developer Guide, Payment Initiation Service, Section 2.2.1",
-            "https://yes.com/docs/rp-devguide/latest/PIS/index.html#_authorization_details",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/PIS/index.html#_authorization_details",
         ),
         (
             "draft-ietf-oauth-rar - OAuth 2.0 Rich Authorization Requests",

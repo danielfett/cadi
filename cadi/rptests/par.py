@@ -87,7 +87,7 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         ),
         (
             "yes® Relying Party Developer Guide, Signing Service, Section 3.2",
-            "https://yes.com/docs/rp-devguide/latest/QES/index.html#_pushed_authorization_request",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/QES/index.html#_pushed_authorization_request",
         ),
     ]
 
@@ -130,7 +130,7 @@ class PARRequestURIAuthorizationRequestTestSet(GETRequestTestSet, ClientIDTestSe
         ),
         (
             "yes® Relying Party Developer Guide, Signing Service, Section 3.3",
-            "https://yes.com/docs/rp-devguide/latest/QES/index.html#_authorization_request",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/QES/index.html#_authorization_request",
         ),
     ]
 

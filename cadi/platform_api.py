@@ -7,12 +7,12 @@ class PlatformAPI:
     TIMEOUT = 30  # seconds
     DEFAULT_URLS = {
         "sandbox": {
-            "token_endpoint": "https://as.sandbox.yes.com/token",
-            "rps": "https://api.sandbox.yes.com/rps/v1/",
+            "token_endpoint": "https://as.sandbox.openbanking.verimi.cloud/token",
+            "rps": "https://api.sandbox.openbanking.verimi.cloud/rps/v1/",
         },
         "production": {
-            "token_endpoint": "https://as.yes.com/token",
-            "rps": "https://api.yes.com/rps/v1/",
+            "token_endpoint": "https://as.openbanking.verimi.de/token",
+            "rps": "https://api.openbanking.verimi.de/rps/v1/",
         },
     }
 

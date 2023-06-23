@@ -88,7 +88,7 @@ class ClientAuthenticationTestSet(RPTestSet):
     t2001_client_certificate_format.references = [
         (
             "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
         ),
     ]
 
@@ -126,7 +126,7 @@ class ClientAuthenticationTestSet(RPTestSet):
     t2002_client_certificate_valid.references = [
         (
             "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
         ),
     ]
 
@@ -152,7 +152,7 @@ class ClientAuthenticationTestSet(RPTestSet):
     t2003_client_certificate_matching.references = [
         (
             "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
         ),
     ]
 
@@ -172,6 +172,6 @@ class ClientAuthenticationTestSet(RPTestSet):
     t2004_client_certificate_is_not_expired.references = [
         (
             "yes® Relying Party Developer Guide, Onboarding and Testing, Section 4.1",
-            "https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
+            "https://docs.verimi.de/openbanking/docs/rp-devguide/latest/ONBOARDING/index.html#_required_data",
         ),
     ]
