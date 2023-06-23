@@ -30,7 +30,10 @@ class PlatformAPI:
             timeout=self.TIMEOUT,
         )
         response = req.json()
-        return response["access_token"], response["expires_in"]
+        try:
+            return response["access_token"], response["expires_in"]
+        except KeyError:
+            raise Exception("Error getting access token: " + str(response))
 
     def get_client_config(self, client_id, is_retry=False):
         expire_info = None
